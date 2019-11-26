@@ -1,4 +1,4 @@
-# This script is deisgned to run as a startup script
+# This script is designed to run as a startup script
 
 Set-StrictMode -Version 2.0
 
