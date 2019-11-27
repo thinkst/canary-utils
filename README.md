@@ -21,12 +21,16 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 ### DeployTokens.ps1
 Author: This Powershell script was kindly donated by a Thinkst customer.
+
 Purpose: This script is intended to deploy the tokens created by CreateTokens.ps1
+
 Usage: As with CreateTokens.ps1, no arguments are taken with this script, you'll need to manually edit it to point it at the tokens you've created and to change the destination for the token. By default, it gets placed in c:\Users\Administrator\Desktop
 
 ### canary_alert_extract.sh
 Author: Thinkst (Adrian)
+
 Purpose: This shell script came from a customer request to dump alerts to a spreadsheet-friendly format. 
+
 Usage: As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing the last week's alerts.
 
 ### canarygen_awscreds.cmd
