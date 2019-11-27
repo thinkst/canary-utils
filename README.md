@@ -20,9 +20,9 @@ Usage: This script doesn't require any arguments. However, you'll need to manual
 In the future, we'll likely update this script to take a list of hosts from an external command (e.g. net view /domain) or from an external text file. Perhaps we can also extend it in the future to output different types of tokens as well.
 
 ### DeployTokens.ps1
-Author: This Powershell script was kindly donated by a Thinkst customer  
-Purpose: This script is intended to deploy the tokens created by CreateTokens.ps1  
-Usage: As with CreateTokens.ps1, no arguments are taken with this script, you'll need to manually edit it to point it at the tokens you've created and to change the destination for the token. By default, it gets placed in c:\Users\Administrator\Desktop
+**Author:** This Powershell script was kindly donated by a Thinkst customer  
+**Purpose:** This script is intended to deploy the tokens created by CreateTokens.ps1  
+**Usage:** As with CreateTokens.ps1, no arguments are taken with this script, you'll need to manually edit it to point it at the tokens you've created and to change the destination for the token. By default, it gets placed in c:\Users\Administrator\Desktop
 
 ### canary_alert_extract.sh
 Author: Thinkst (Adrian)  
