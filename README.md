@@ -31,12 +31,12 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 ### canarygen_awscreds.cmd
 **Author:** Thinkst (Adrian)  
-**Purpose:** This is a Windows version of the following python script. It's designed to generate one unique AWS credentials token per host.
+**Purpose:** This is a Windows version of the following python script. It's designed to generate one unique AWS credentials token per host.  
 **Usage:** The script needs to be edited to set the Console and API key variables. Requires [JQ](https://stedolan.github.io/jq/) and Curl to either be in the path, or for the path to be customized in the script.
 
 ### canarygen_awscreds_auto.py
 **Author:** Thinkst (Adrian)  
-**Purpose:** This python script generates unique AWS credential tokens each time it is run. This script is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).
+**Purpose:** This python script generates unique AWS credential tokens each time it is run. This script is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
 **Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning that you'll have to manually edit the script to set your Console and API key variables.
 
 ### delete_tokens.py
