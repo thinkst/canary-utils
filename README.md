@@ -24,10 +24,20 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Purpose:** This script is intended to deploy the tokens created by CreateTokens.ps1  
 **Usage:** As with CreateTokens.ps1, no arguments are taken with this script, you'll need to manually edit it to point it at the tokens you've created and to change the destination for the token. By default, it gets placed in c:\Users\Administrator\Desktop
 
+### alert_management.sh
+**Author:** Thinkst (Matt)
+**Purpose** This script is a quick and easy way to export alert data out of the console and clean up the alerts all at once.
+**Usage:** Run this script with the -h flag to read the usage. API details can be entered at runtime, or edited into the script directly. Additional options exist to save and acknowledge (don't delete) or to acknowledge and delete (don't save).
+
 ### canary_alert_extract.sh
 **Author:** Thinkst (Adrian)  
 **Purpose:** This shell script came from a customer request to dump alerts to a spreadsheet-friendly format  
 **Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing the last week's alerts.  
+
+### canaryconsole.py
+**Author:** Thinkst (Adrian)
+**Purpose:** This is a commandline version of the Canary console. Functionality is limited to read-only functions at this stage, but it may be further developed into a tool that makes it easier to deploy large numbers of Canarytokens or make mass changes to Canaries.
+**Usage:** Type ```python3 canaryconsole.py``` and it will do the rest, including prompting for console name and API key.
 
 ### canarygen_awscreds.cmd
 **Author:** Thinkst (Adrian)  
