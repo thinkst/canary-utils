@@ -34,6 +34,11 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Purpose:** This shell script came from a customer request to dump alerts to a spreadsheet-friendly format  
 **Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing the last week's alerts.  
 
+### canary_api2csv.sh
+**Author:** Thinkst (Adrian)
+**Purpose:** Intended for SIEM use - only pulls unique new alerts that haven't been pulled previously and exports them to a CSV file. Suitable for a cron job that runs this command and places files in a location where the SIEM knows to pick them up and ingest them.
+**Usage:** Edit the file to copy in your unique console URL and API key. Then, just run the script with no arguments.
+
 ### canaryconsole.py
 **Author:** Thinkst (Adrian)  
 **Purpose:** This is a commandline version of the Canary console. Functionality is limited to read-only functions at this stage, but it may be further developed into a tool that makes it easier to deploy large numbers of Canarytokens or make mass changes to Canaries.  
