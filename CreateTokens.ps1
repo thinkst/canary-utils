@@ -1,5 +1,6 @@
 # Script to create Canary tokens for a list of hosts.
-
+# We force TLS1.2 since our API doesn't support lower.
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-StrictMode -Version 2.0
 
 # Connect to API
