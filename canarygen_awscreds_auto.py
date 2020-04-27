@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Generate AWS Creds 0.1
 # canarygen_awscreds.py
 #
@@ -5,9 +7,9 @@
 # automatically grab username and hostname variables from the system it is
 # run on.
 #
-# PREREQS
-# python 3
-# pip3 install canarytools
+# PREREQS (works with python 2.7 and 3.x)
+#pip install canarytools
+#pip3 install canarytools
 import canarytools
 import getpass
 import socket
