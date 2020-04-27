@@ -8,8 +8,8 @@
 # run on.
 #
 # PREREQS (works with python 2.7 and 3.x)
-#pip install canarytools
-#pip3 install canarytools
+#pip -q install canarytools
+#pip3 -q install canarytools
 import canarytools
 import getpass
 import socket
