@@ -58,3 +58,8 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Author:** Thinkst (Jay)  
 **Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
+
+### deploy_tokens.ps1
+**Author:** Thinkst (Bradley)
+**Purpose:** A sample for mass deploying tokens in parallel across Active Directory.
+**Usage:** `deploy_tokens.ps1`
