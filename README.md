@@ -1,4 +1,4 @@
-# Thinkst Canary Scripts
+# Thinkst Canary Scripts and Resources
 A hodgepodge of humble but helpful scripts created for Thinkst Canary customers.
 
 While it's great that most products and services these days have APIs, they're often oversold. The answer to any question about a missing feature can be, "you can do anything with our product, it has an API!"
@@ -63,3 +63,8 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Author:** Thinkst (Bradley)
 **Purpose:** A sample for mass deploying tokens in parallel across Active Directory.
 **Usage:** `deploy_tokens.ps1`
+
+### yellow - just add blue
+**Author:** Dominic White (singe)
+**Purpose:** A simple binary wrapper that will trigger a Canarytoken when a binary is executed.
+**Link to Repo:** [singe/yellow](https://github.com/singe/yellow)
