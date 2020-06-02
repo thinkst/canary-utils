@@ -60,11 +60,11 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
 
 ### deploy_tokens.ps1
-**Author:** Thinkst (Bradley)
-**Purpose:** A sample for mass deploying tokens in parallel across Active Directory.
+**Author:** Thinkst (Bradley)  
+**Purpose:** A sample for mass deploying tokens in parallel across Active Directory.  
 **Usage:** `deploy_tokens.ps1`
 
 ### yellow - just add blue
-**Author:** Dominic White (singe)
-**Purpose:** A simple binary wrapper that will trigger a Canarytoken when a binary is executed.
+**Author:** Dominic White (singe)  
+**Purpose:** A simple binary wrapper that will trigger a Canarytoken when a binary is executed.  
 **Link to Repo:** [singe/yellow](https://github.com/singe/yellow)
