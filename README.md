@@ -54,6 +54,12 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Purpose:** This python script generates unique AWS credential tokens each time it is run. This script is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
 **Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning that you'll have to manually edit the script to set your Console and API key variables.
 
+### canarygen_awscreds_auto.sh
+**Author:** Thinkst (Adrian)  
+**Purpose:** This shell script generates unique AWS credential tokens each time it is run. It was specifically designed to run with zero dependencies (as opposed to the python version of this script, which has a few). It is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
+**Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning that you'll have to manually edit the script to set your Console and API key variables.  
+**Compatibility:** This script has been tested and confirmed to run correctly on macOS (Catalina and High Sierra) and Ubuntu 18.04.  
+
 ### delete_tokens.py
 **Author:** Thinkst (Jay)  
 **Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
