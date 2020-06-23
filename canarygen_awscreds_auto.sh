@@ -14,7 +14,7 @@
 # 5. Path where file will be created (defaults to root of home directory)
 export console=ab1234ef.canary.tools
 export token=deadbeef02082f1ad8bbc9cdfbfffeef
-export tokenmemo='Fake AWS Creds on host: $HOSTNAME username: $USER'
+export tokenmemo="Fake AWS Creds on host: $HOSTNAME username: $USER"
 export flock='Default Flock'
 export filepath=~
 
@@ -29,7 +29,7 @@ flockid=$(curl -s "https://${console}/api/v1/flocks/filter?auth_token=${token}&f
 #echo -e "Creating token"
 awscreds=$(curl -s https://$console/api/v1/canarytoken/create \
   -d auth_token=$token \
-  -d memo='$tokenmemo' \
+  -d memo="$tokenmemo" \
   -d kind=aws-id \
   -d flock_id=$flockid | grep -Eo '"aws-id":.*?[^\\]",' | awk -F '[":"},]' '{print $5,$6}')
 
