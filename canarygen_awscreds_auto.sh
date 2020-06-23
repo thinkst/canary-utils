@@ -23,10 +23,8 @@ export filedate=`date "+%Y%m%d%H%M%S"`
 
 # Get FlockID from flock name
 flockid=$(curl -s "https://${console}/api/v1/flocks/filter?auth_token=${token}&filter_str=${flock}" | grep -Eo '"flock_id":.*?[^\\]",' | awk -F '[":"]' '{print $5,$6}' OFS=":")
-#echo -e "\nFlockID is $flockid"
 
 # Create the token
-#echo -e "Creating token"
 awscreds=$(curl -s https://$console/api/v1/canarytoken/create \
   -d auth_token=$token \
   -d memo="$tokenmemo" \
