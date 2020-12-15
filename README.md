@@ -74,3 +74,12 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Author:** Dominic White (singe)  
 **Purpose:** A simple binary wrapper that will trigger a Canarytoken when a binary is executed.  
 **Link to Repo:** [singe/yellow](https://github.com/singe/yellow)
+
+### CanaryDeleter
+**Author:** Thinkst (Sherif)  
+**Purpose:** Delete all incidents from a specific flock (using flock's name), or from a specific Canary device (using its NodeID); tool will optionally dump all incidents to a json file.   
+**Usage:** 
+#### _Deleting all incidents from the default flock._
+`./CanaryDeleter -apikey $API_KEY -console $CONSOLE_HASH -flock "Default Flock"`
+#### _Deleting all incidents from a specific node, without dumping incidents to a json file_
+`./CanaryDeleter -apikey $API_KEY -console $CONSOLE_HASH -node 00034d476ff8e02d -dump=false`
