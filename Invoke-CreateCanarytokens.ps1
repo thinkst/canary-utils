@@ -131,7 +131,7 @@ ForEach ($TargetHostname in $Targets) {
     $PostData = @{
         auth_token = "$ApiToken"
         kind       = "$TokenType"
-        memo       = "$TokenName"
+        memo       = "$TargetHostname - $TokenName"
     }
     Write-Host -ForegroundColor Green "[*] Hitting API to create token ..."
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/create" -Body $PostData
