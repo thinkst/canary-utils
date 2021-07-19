@@ -86,6 +86,9 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 ### GreyNoise-Canary-Threat-Intel-Report.sh
 **Author:** This bash script was kindly donated by a Thinkst customer.
+
 **Purpose:** This script is intended to run your alerts through the GreyNoise community API.
+
 **Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+
 **Prerequisites:** The API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-). You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine. The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
