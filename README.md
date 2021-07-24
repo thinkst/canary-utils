@@ -92,3 +92,12 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
 
 **Prerequisites:** The API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-). You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine. The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
+
+### Automated-AWS-Canary-Bird-Deployment.sh
+**Author:** This bash script was kindly donated by a Thinkst customer.
+
+**Purpose:** This script automates the process for commissioning a bird that has been deployed as an AWS EC2 instance and configures the device personality using the Canary API.
+
+**Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `CANARY_FLOCK` you'd like to deploy the bird to a flock other than the default. Replace the values in the sample config.json file and enable desired services.
+
+**Prerequisites:** The API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-). You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine. The script requires that a bird be deployed in AWS prior to configuring it. You can find terraform code to deploy your bird as AWS EC2 instance under the `terraform` folder in this repository.
