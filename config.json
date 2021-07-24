@@ -132,7 +132,6 @@
   "tcpbanner_1.keep_alive.enabled": false,
   "tcpbanner_1.keep_alive_secret": "",
   "tcpbanner_1.port": 389,
-
   "telnet.authentication_failed_prompt": "",
   "telnet.banner": "",
   "telnet.enabled": false,
