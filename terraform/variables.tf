@@ -10,7 +10,7 @@ variable "tf_config" {
 }
 
 variable "name" {
-  description = "Name to be used on all resources as prefix"
+  description = "Name of the Canary EC2 instance"
   type        = string
   default     = ""
 }
@@ -21,7 +21,7 @@ variable "ami_id" {
 }
 
 variable "instance_type" {
-  description = "The type of instance to start"
+  description = "The type of instance to start. You shouldn't need anything more than t2.micro"
   type        = string
   default     = "t2.micro"
 }
@@ -37,30 +37,30 @@ variable "vpc_id" {
 }
 
 variable "subnets" {
-  description = "The VPC subnets to launch the instances into"
+  description = "The VPC subnets to launch the instance(s) into"
   type        = list(string)
 }
 
 variable "public_ip" {
-  description = "If true, the EC2 instances will have associated public IP address"
+  description = "Set value to true if deploying an outside bird"
   type        = bool
   default     = false
 }
 
 variable "size" {
-  description = "Desired size of the ASG"
+  description = "Desired size of the ASG used to manage the Canary EC2 instance(s)"
   type        = number
   default     = 1
 }
 
 variable "allowed_ingress_cidrs" {
-  description = "List of CIDR blocks allowed ingress into the ASG's instances"
+  description = "List of CIDR blocks allowed ingress into the ASG's Canary EC2 instances. The default value for outside bird should be ["0.0.0.0/0"]. The recommended value for inside birds is the VPC CIDR block"
   type        = list(string)
   default     = []
 }
 
 variable "allowed_egress_cidrs" {
-  description = "List of CIDR blocks to which the egress from the ASG's instances is allowed"
+  description = "List of CIDR blocks to which the egress from the ASG's Canary EC2 instances is allowed. You can lock this down by only allowing encrypted DNS on port 53 outbound to your local VPC resolver and 443 outbound to the Internet for DoH to Cloudflare"
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
