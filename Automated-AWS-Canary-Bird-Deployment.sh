@@ -1,7 +1,4 @@
 #!/bin/bash
-# Automated-AWS-Canary-Bird-Deployment.sh
-# Justin Varner
-# July 24, 2021
 # This script automates the process for commissioning a bird that has been deployed as an AWS EC2 instance and configures the device personality using the Canary API. Values in the sample config.json file should be replaced (all services are disabled by default). Set the CANARY_HASH, CANARY_TOKEN, and CANARY_FLOCK variables based on your tenant.
 #Terraform code for deploying inside and outside birds can be found here:
 
