@@ -93,7 +93,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
-You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine.
+You will also need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### GreyNoise-Enterprise-Canary-Threat-Intel-Report.sh
@@ -106,5 +106,19 @@ Doppler is a handy tool for securely syncing and managing environment variables.
 
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
-You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine.
+You will also need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
+
+### Canary-AWS-Bird-Automated-Deployment.sh
+**Author:** Sage AI Labs (justin-varner)
+
+**Purpose:** This shell script is intended to automate the process for configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
+
+**Usage:** Set the `CANARY_HASH`, `CANARY_TOKEN`, and `FLOCK_ID` values found in your Canary console.
+Set desired values for the bird's device personality in the sample config.json file. All bird services are disabled by default.
+Run the script after deploying an AWS EC2 Canary instance to automatically configure the device personality and commission the bird for use.
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
+
+**Prerequisites:** You will need to deploy a Canary AWS EC2 instance before running this script. Sample code for automating the infrastructure provisioning can be found in the terraform folder of this repository.
+The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+You will also need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
