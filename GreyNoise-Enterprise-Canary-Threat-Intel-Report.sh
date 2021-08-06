@@ -19,7 +19,7 @@ lines=$(cat $file)
 
 for line in $lines
 do
-    curl "https://api.greynoise.io/v2/noise/context/$line" --header 'key: $GREYNOISE_API_KEY' | jq '.' | cat >> GreyNoise-Enterprise-Canary-Threat-Intel-Report-$(date +%Y-%m-%d).json
+    curl "https://api.greynoise.io/v2/noise/context/$line" --header "$GREYNOISE_API_KEY" | jq '.' | cat >> GreyNoise-Enterprise-Canary-Threat-Intel-Report-$(date +%Y-%m-%d).json
 done
 
 # Cleanup all residual files except for the final GreyNoise report
