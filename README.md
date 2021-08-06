@@ -32,7 +32,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 ### canary_alert_extract.sh
 **Author:** Thinkst (Adrian)  
 **Purpose:** This shell script came from a customer request to dump alerts to a spreadsheet-friendly format  
-**Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing the last week's alerts.  
+**Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing all Console alerts.  
 
 ### canary_api2csv.sh
 **Author:** Thinkst (Adrian)  
