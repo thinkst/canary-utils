@@ -32,7 +32,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 ### canary_alert_extract.sh
 **Author:** Thinkst (Adrian)  
 **Purpose:** This shell script came from a customer request to dump alerts to a spreadsheet-friendly format  
-**Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing all Console alerts.  
+**Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing the last week's alerts.  
 
 ### canary_api2csv.sh
 **Author:** Thinkst (Adrian)  
@@ -84,20 +84,27 @@ In the future, we'll likely update this script to take a list of hosts from an e
 #### _Deleting all incidents from a specific node, without dumping incidents to a json file_
 `./CanaryDeleter -apikey $API_KEY -console $CONSOLE_HASH -node 00034d476ff8e02d -dump=false`
 
-### GreyNoise-Canary-Threat-Intel-Report.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
+### GreyNoise-Community-Canary-Threat-Intel-Report.sh
+**Author:** Sage AI Labs (justin-varner)
 
-**Purpose:** This script is intended to run your alerts through the GreyNoise community API.
+**Purpose:** This shell script is intended to run your alerts through the GreyNoise Community API.
 
 **Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** The API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-). You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine. The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine.
+The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
-### Automated-AWS-Canary-Bird-Deployment.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
+### GreyNoise-Enterprise-Canary-Threat-Intel-Report.sh
+**Author:** Sage AI Labs (justin-varner)
 
-**Purpose:** This script automates the process for commissioning a bird that has been deployed as an AWS EC2 instance and configures the device personality using the Canary API.
+**Purpose:** This shell script is intended to run your alerts through the GreyNoise Enterprise API.
 
-**Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `CANARY_FLOCK` you'd like to deploy the bird to if you're not using the default flock. Replace the values in the sample config.json file and enable desired services.
+**Usage:** Set the `CANARY_HASH`, `CANARY_TOKEN`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** The API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-). You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine. The script requires that a bird be deployed in AWS prior to configuring it. You can find terraform code to deploy your bird as an AWS EC2 instance under the `terraform` folder in this repository.
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
+You will then need the {jq}(https://stedolan.github.io/jq/) package installed on your local machine.
+The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
