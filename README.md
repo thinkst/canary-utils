@@ -85,9 +85,9 @@ In the future, we'll likely update this script to take a list of hosts from an e
 `./CanaryDeleter -apikey $API_KEY -console $CONSOLE_HASH -node 00034d476ff8e02d -dump=false`
 
 ### GreyNoise-Community-Canary-Threat-Intel-Report.sh
-**Author:** Sage AI Labs (justin-varner)
+**Author:** This bash script was kindly donated by a Thinkst customer.
 
-**Purpose:** This shell script is intended to run your alerts through the GreyNoise Community API.
+**Purpose:** This bash script is intended to run your alerts through the GreyNoise Community API.
 
 **Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
@@ -97,9 +97,9 @@ You will then need the [jq](https://stedolan.github.io/jq/) package installed on
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### GreyNoise-Enterprise-Canary-Threat-Intel-Report.sh
-**Author:** Sage AI Labs (justin-varner)
+**Author:** This bash script was kindly donated by a Thinkst customer.
 
-**Purpose:** This shell script is intended to run your alerts through the GreyNoise Enterprise API.
+**Purpose:** This bash script is intended to run your alerts through the GreyNoise Enterprise API.
 
 **Usage:** Set the `CANARY_HASH`, `CANARY_TOKEN`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
@@ -110,12 +110,12 @@ You will then need the [jq](https://stedolan.github.io/jq/) package installed on
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### Canary-AWS-Bird-Automated-Deployment.sh
-**Author:** Sage AI Labs (justin-varner)
+**Author:** This bash script was kindly donated by a Thinkst customer.
 
-**Purpose:** This shell script is intended to automate the process for configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
+**Purpose:** This bash script is intended to automate the process for configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
 
 **Usage:** Set the `CANARY_HASH`, `CANARY_TOKEN`, and `FLOCK_ID` values found in your Canary console.
-Set desired values for the bird's device personality in the sample config.json file. All bird services are disabled by default.
+Set your desired values for the bird's device personality in the sample config.json file. All bird services are disabled by default.
 Run the script after deploying an AWS EC2 Canary instance to automatically configure the device personality and commission the bird for use.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
