@@ -23,7 +23,7 @@ variable "ami_id" {
 variable "instance_type" {
   description = "The type of instance to start. You shouldn't need anything more than t2.micro"
   type        = string
-  default     = "t2.micro"
+  default     = "t2.medium"
 }
 
 variable "key_name" {

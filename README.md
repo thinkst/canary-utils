@@ -84,29 +84,63 @@ In the future, we'll likely update this script to take a list of hosts from an e
 #### _Deleting all incidents from a specific node, without dumping incidents to a json file_
 `./CanaryDeleter -apikey $API_KEY -console $CONSOLE_HASH -node 00034d476ff8e02d -dump=false`
 
-### GreyNoise-Community-Canary-Threat-Intel-Report.sh
+### Canary-GreyNoise-Community-Threat-Intel-Report.sh
 **Author:** This bash script was kindly donated by a Thinkst customer.
 
 **Purpose:** This bash script is intended to run your alerts through the GreyNoise Community API.
 
-**Usage:** Set the `CANARY_HASH` & `CANARY_TOKEN` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+**Usage:** Set the `CANARY_HASH` & `CANARY_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
+If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
+On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
-### GreyNoise-Enterprise-Canary-Threat-Intel-Report.sh
+### Canary-GreyNoise-Enterprise-Threat-Intel-Report.sh
 **Author:** This bash script was kindly donated by a Thinkst customer.
 
 **Purpose:** This bash script is intended to run your alerts through the GreyNoise Enterprise API.
 
-**Usage:** Set the `CANARY_HASH`, `CANARY_TOKEN`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
+If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
+On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
+The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
+
+### Recent-Canary-GreyNoise-Enterprise-Threat-Intel-Report.sh
+**Author:** This bash script was kindly donated by a Thinkst customer.
+
+**Purpose:** This bash script is intended to run your recent (last 100) alerts through the GreyNoise Enterprise API rather than every alert from antiquity.
+
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
+
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
+You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
+If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
+On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
+The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
+
+### Canary-Shodan-Threat-Intel-Report.sh
+**Author:** This bash script was kindly donated by a Thinkst customer.
+
+**Purpose:** This bash script is intended to run your alerts through the Shodan API.
+
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `SHODAN_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
+
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+You will also need a paid Shodan plan to obtain an API key. You can find Shodan plan information [here](https://account.shodan.io/billing).
+You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
+If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
+On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### Canary-AWS-Bird-Automated-Deployment.sh
@@ -114,11 +148,11 @@ The script currently only supports outside Birds, a guide on how to enable this 
 
 **Purpose:** This bash script is intended to automate the process for configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
 
-**Usage:** Set the `CANARY_HASH`, `CANARY_TOKEN`, and `FLOCK_ID` values found in your Canary console.
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `FLOCK_ID` values found in your Canary console.
 Set your desired values for the bird's device personality in the sample config.json file. All bird services are disabled by default.
 Run the script after deploying an AWS EC2 Canary instance to automatically configure the device personality and commission the bird for use.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** You will need to deploy a Canary AWS EC2 instance before running this script. Sample code for automating the infrastructure provisioning can be found in the terraform folder of this repository.
+**Prerequisites:** You will need to deploy a Canary AWS EC2 instance before running this script. Sample code for automating the infrastructure provisioning can be found in the terraform folder of this repository. Terraform binaries can be found [here](https://www.terraform.io/downloads.html)
 The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
