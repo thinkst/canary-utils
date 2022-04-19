@@ -12,8 +12,8 @@
 # 3. Memo/reminder for the token (this is what you see when you get an alert!)
 # 4. Flock Name
 # 5. Path where file will be created (defaults to root of home directory)
-export console=x.canary.tools
-export token=x
+export console=ab1234ef.canary.tools
+export token=deadbeef02082f1ad8bbc9cdfbfffeef
 export tokenmemo="Fake AWS Creds on host: $HOSTNAME username: $USER"
 export flock='Default+Flock'
 export filepath=~
