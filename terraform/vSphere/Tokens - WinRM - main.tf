@@ -60,8 +60,8 @@ resource "vsphere_virtual_machine" "vmFromLocalOvf" {
   # executes the following commands remotely https://www.terraform.io/language/resources/provisioners/remote-exec
   provisioner "remote-exec" {
     inline = [
-      "python3 <destination_script_location>",
-      "rm -rf /<destination_script_location>",
+      "<destination_script_location>",
+      "del <destination_script_location>",
     ]
   }
 }
