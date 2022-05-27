@@ -1,31 +1,66 @@
 #Canary Token Multi-Dropper
 Param (
-    [string]$Domain = 'xxxx.canary.tools', # Enter your Console domain between the . e.g. 1234abc.canary.tools
-    [string]$FactoryAuth = 'xxxx', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-    [string]$FlockID = 'flock:default' # Enter desired flock to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+    [string]$Domain = 'ABC123.canary.tools', # Enter your Console domain between the . e.g. 1234abc.canary.tools
+    [string]$FactoryAuth = 'ABC123', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+    [string]$FlockID = 'flock:default', # Enter desired flock to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+    [string]$intro = 'ON'
     )
+
+####################################################################################################################################################################################################################################
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-StrictMode -Version 2.0
 
+#PRINT MINYONI INTRO
+
+if ($intro -eq 'ON') {
+    Write-Host -ForegroundColor Green "         _______________"
+    Write-Host -ForegroundColor Green "        |HAPPY TOKENING!|"
+    Write-Host -ForegroundColor Green "        |___________   /"
+    Write-Host -ForegroundColor Green "           ....    / /"
+    Write-Host -ForegroundColor Green "         / ^  ^ \ //"
+    Write-Host -ForegroundColor Green "        (   \/   )"
+    Write-Host -ForegroundColor Green "         )      ("
+    Write-Host -ForegroundColor Green "       (          )"
+    Write-Host -ForegroundColor Green "      (            )"
+    Write-Host -ForegroundColor Green "       (          )"
+    Write-Host -ForegroundColor Green "        [        ]"
+    Write-Host -ForegroundColor Green "       --/\ --- /\-----"
+    Write-Host -ForegroundColor Green "      ---------------"
+    Write-Host -ForegroundColor Green "        /   /"
+    Write-Host -ForegroundColor Green "       /___/"
+}
+else {
+    Write-Host -ForegroundColor Yellow "[X] Skipping Intro..."
+}
+
+####################################################################################################################################################################################################################################
+
 #Drops a Windows Folder Token
 function Drop-Token_Folder{
     param (
-        [string]$TokenType_Folder = 'windows-dir', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_Folder = "token-folder.zip", # Desired Token file name.
-        [string]$TargetDirectory_Folder = "c:\folder_directory" # Local location to drop the token into.
+        [string]$TokenType = 'windows-dir', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TargetFolderName = "Folder_Token", # Desired Token Folder name.
+        [string]$TargetDirectory = "c:\folder_directory", # Local location to drop the token into.
+        [string]$TempZipFilename = "token-folder.zip" 
     )
-    If (!(Test-Path $TargetDirectory_Folder)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_Folder"
+
+    $OutputFileName = "$TargetDirectory\$TargetFolderName"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
     }
-    
-    $OutputFileName = "$TargetDirectory_Folder\$TokenFilename_Folder"
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_Folder"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_Folder"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -38,35 +73,43 @@ function Drop-Token_Folder{
         $TokenID = $($CreateResult).canarytoken.canarytoken
     }
     
-    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
-    Expand-Archive $TargetDirectory_Folder\$TokenFilename_Folder -DestinationPath $TargetDirectory_Folder\
-    Remove-item $TargetDirectory_Folder\$TokenFilename_Folder
-    $attrib = Get-ChildItem $TargetDirectory_Folder\ -Recurse | foreach{$_.Attributes = 'System'}
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$TargetDirectory\$TempZipFilename"
+    Expand-Archive $TargetDirectory\$TempZipFilename -DestinationPath $TargetDirectory\
+    Remove-item $TargetDirectory\$TempZipFilename
+    Rename-Item "$TargetDirectory\My Documents" "$TargetDirectory\$TargetFolderName"
+    $attrib = Get-ChildItem $TargetDirectory\ -Recurse | foreach{$_.Attributes = 'System'}
     
-    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$TargetDirectory\$TargetFolderName'. Complete on $env:computername"
 }
 
 Drop-Token_Folder
-Write-Host -ForegroundColor Green "[*] Folder Token Dropped"
+
+####################################################################################################################################################################################################################################
 
 #Drops an AWS API Token
 function Drop-Token_AWS{
     param (
-        [string]$TokenType_AWS = 'aws-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_AWS = "aws-keys.txt", # Desired Token file name.
-        [string]$TargetDirectory_AWS = "c:\aws_directory" # Local location to drop the token into.
+        [string]$TokenType = 'aws-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "aws-keys.txt", # Desired Token file name.
+        [string]$TargetDirectory = "c:\aws_directory" # Local location to drop the token into.
     )
-    If (!(Test-Path $TargetDirectory_AWS)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_AWS"
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
     }
-    
-    $OutputFileName = "$TargetDirectory_AWS\$TokenFilename_AWS"
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_AWS"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_AWS"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -84,26 +127,33 @@ function Drop-Token_AWS{
 }
 
 Drop-Token_AWS
-Write-Host -ForegroundColor Green "[*] AWS Token Dropped"
+
+####################################################################################################################################################################################################################################
 
 #Drops a Word Token
 function Drop-Token_Word{
     param (
-        [string]$TokenType_Word = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_Word = "secrets.doc", # Desired Token file name.
-        [string]$TargetDirectory_Word = "c:\word_directory" # Local location to drop the token into.
+        [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "secrets.doc", # Desired Token file name.
+        [string]$TargetDirectory = "c:\word_directory" # Local location to drop the token into.
     )
-    If (!(Test-Path $TargetDirectory_Word)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_Word"
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
     }
-    
-    $OutputFileName = "$TargetDirectory_Word\$TokenFilename_Word"
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_Word"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_Word"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -121,26 +171,33 @@ function Drop-Token_Word{
 }
 
 Drop-Token_Word
-Write-Host -ForegroundColor Green "[*] Word Token Dropped"
+
+####################################################################################################################################################################################################################################
 
 #Drops a Word Macro Token
-function Drop-Token_Word-Macro{
+function Drop-Token_Word_Macro{
     param (
-        [string]$TokenType_Word_Macro = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_Word_Macro = "secrets.docm", # Desired Token file name.
-        [string]$TargetDirectory_Word_Macro = "c:\word_macro_directory" # Local location to drop the token into.
+        [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "secrets.docm", # Desired Token file name.
+        [string]$TargetDirectory = "c:\word_macro_directory" # Local location to drop the token into.
     )
-    If (!(Test-Path $TargetDirectory_Word_Macro)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_Word_Macro"
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
     }
-    
-    $OutputFileName = "$TargetDirectory_Word_Macro\$TokenFilename_Word_Macro"
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_Word_Macro"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_Word_Macro"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -157,27 +214,78 @@ function Drop-Token_Word-Macro{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_Word-Macro
-Write-Host -ForegroundColor Green "[*] Word-Macro Token Dropped"
+Drop-Token_Word_Macro
+
+####################################################################################################################################################################################################################################
+
+#Drops an Excel Token
+function Drop-Token_Excel{
+    param (
+        [string]$TokenType = 'doc-msexcel' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "excel.xls", # Desired Token file name.
+        [string]$TargetDirectory = "c:\excel_directory" # Local location to drop the token into.
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        flock_id = "$FlockID"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenID = $($CreateResult).canarytoken.canarytoken
+    }
+    
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Drop-Token_Excel
+
+####################################################################################################################################################################################################################################
 
 #Drops an Excel-Macro Token
-function Drop-Token_Excel-Macro{
+function Drop-Token_Macro{
     param (
-        [string]$TokenType_Excel = 'msexcel-macro' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_Excel = "excel-macro.xlsm", # Desired Token file name.
-        [string]$TargetDirectory_Excel = "c:\excel_directory" # Local location to drop the token into.
+        [string]$TokenType = 'msexcel-macro' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "excel-macro.xlsm", # Desired Token file name.
+        [string]$TargetDirectory = "c:\excel_macro_directory" # Local location to drop the token into.
     )
-    If (!(Test-Path $TargetDirectory_Excel)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_Excel"
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
     }
-    
-    $OutputFileName = "$TargetDirectory_Excel\$TokenFilename_Excel"
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_Excel"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_Excel"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -194,27 +302,35 @@ function Drop-Token_Excel-Macro{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_Excel-Macro
-Write-Host -ForegroundColor Green "[*] Excel-Macro Token Dropped"
+Drop-Token_Macro
+
+####################################################################################################################################################################################################################################
 
 #Drops a PDF Token
 function Drop-Token_PDF{
     param (
-        [string]$TokenType_PDF = 'pdf-acrobat-reader' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_PDF = "PDF_Doc.pdf", # Desired Token file name.
-        [string]$TargetDirectory_PDF = "c:\pdf_directory" # Local location to drop the token into.
+        [string]$TokenType = 'pdf-acrobat-reader' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "PDF_Doc.pdf", # Desired Token file name.
+        [string]$TargetDirectory = "c:\pdf_directory" # Local location to drop the token into.
     )
-    If (!(Test-Path $TargetDirectory_PDF)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_PDF"
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
     }
     
-    $OutputFileName = "$TargetDirectory_PDF\$TokenFilename_PDF"
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_PDF"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_PDF"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -232,26 +348,34 @@ function Drop-Token_PDF{
 }
 
 Drop-Token_PDF
-Write-Host -ForegroundColor Green "[*] PDF Token Dropped"
+
+####################################################################################################################################################################################################################################
 
 #Drops a QR-Code Token
-function Drop-Token_QR-Code{
+function Drop-Token_QR{
     param (
-        [string]$TokenType_QR = 'qr-code' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename_QR = "QR_Code.png", # Desired Token file name.
-        [string]$TargetDirectory_QR = "c:\QR_Code_directory" # Local location to drop the token into.
+        [string]$TokenType = 'qr-code' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "QR_Code.png", # Desired Token file name.
+        [string]$TargetDirectory = "c:\QR_Code_directory" # Local location to drop the token into.
     )
-    If (!(Test-Path $TargetDirectory_QR)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory_QR"
+    
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
     }
     
-    $OutputFileName = "$TargetDirectory_QR\$TokenFilename_QR"
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
-        kind       = "$TokenType_QR"
+        kind       = "$TokenType"
         flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory_QR"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
@@ -268,7 +392,8 @@ function Drop-Token_QR-Code{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_QR-Code
-Write-Host -ForegroundColor Green "[*] QR-Code Token Dropped"
+Drop-Token_QR
 
-Write-Host -ForegroundColor Green "[*] Multi-token dropper Complete"
+####################################################################################################################################################################################################################################
+
+Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete"
