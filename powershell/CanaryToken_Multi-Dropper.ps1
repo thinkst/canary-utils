@@ -134,7 +134,7 @@ Drop-Token_AWS
 function Drop-Token_Word{
     param (
         [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = "secrets.doc", # Desired Token file name.
+        [string]$TokenFilename = "secrets.docx", # Desired Token file name.
         [string]$TargetDirectory = "c:\word_directory" # Local location to drop the token into.
     )
 
