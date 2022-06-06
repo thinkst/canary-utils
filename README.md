@@ -5,7 +5,7 @@ While it's great that most products and services these days have APIs, they're o
 
 Logically, your next thought might be, "sure, but that API would be a lot more useful if I had a few spare Python developers to throw at a few projects..."
 
-In this spirit, we often build scripts and bits of code to help customers automate and integrate things withour API. In some cases, our fantastic customers even write the code and donate it back to us.
+In this spirit, we often build scripts and bits of code to help customers automate and integrate things with our API. In some cases, our fantastic customers even write the code and donate it back to us.
 
 Happy birding!
 
@@ -21,7 +21,7 @@ In general, most of these scripts will need to be edited to add your Canary Cons
 
 ### canary_alert_extract.sh
 **Author:** Thinkst (Adrian)  
-**Purpose:** This shell script came from a customer request to dump alerts to a spreadsheet-friendly format  
+**Purpose:** This shell script came from a customer request to dump alerts in a spreadsheet-friendly format  
 **Usage:** As with the Powershell scripts, using this script requires a bit of manual editing. Customize the API token and Canary Console variables and the shell script can be run with no arguments to produce a CSV containing the last week's alerts.  
 
 ### canary_api2csv.sh
@@ -32,7 +32,7 @@ In general, most of these scripts will need to be edited to add your Canary Cons
 ### Canary-AWS-Bird-Automated-Deployment.sh
 **Author:** This bash script was kindly donated by a Thinkst customer.
 
-**Purpose:** This bash script is intended to automate the process for configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
+**Purpose:** This bash script is intended to automate the process of configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
 
 **Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `FLOCK_ID` values found in your Canary console.
 Set your desired values for the bird's device personality in the sample config.json file. All bird services are disabled by default.
@@ -40,7 +40,7 @@ Run the script after deploying an AWS EC2 Canary instance to automatically confi
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
 **Prerequisites:** You will need to deploy a Canary AWS EC2 instance before running this script. Sample code for automating the infrastructure provisioning can be found in the terraform folder of this repository. Terraform binaries can be found [here](https://www.terraform.io/downloads.html)
-The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 
 ### canarygen_awscreds_auto.sh
@@ -59,10 +59,10 @@ You will also need the [jq](https://stedolan.github.io/jq/) package installed on
 
 **Purpose:** This bash script is intended to run your alerts through the GreyNoise Community API.
 
-**Usage:** Set the `CANARY_HASH` & `CANARY_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+**Usage:** Set the `CANARY_HASH` & `CANARY_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
 On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
@@ -73,10 +73,10 @@ The script currently only supports outside Birds, a guide on how to enable this 
 
 **Purpose:** This bash script is intended to run your alerts through the GreyNoise Enterprise API.
 
-**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
@@ -88,10 +88,10 @@ The script currently only supports outside Birds, a guide on how to enable this 
 
 **Purpose:** This bash script is intended to run your recent (last 100) alerts through the GreyNoise Enterprise API rather than every alert from antiquity.
 
-**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
@@ -103,10 +103,10 @@ The script currently only supports outside Birds, a guide on how to enable this 
 
 **Purpose:** This bash script is intended to run your alerts through the Shodan API.
 
-**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `SHODAN_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new json file.
+**Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `SHODAN_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
 
-**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
+**Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a paid Shodan plan to obtain an API key. You can find Shodan plan information [here](https://account.shodan.io/billing).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
@@ -136,7 +136,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 ### canaryconsole.py
 **Author:** Thinkst (Adrian)  
-**Purpose:** This is a commandline version of the Canary console. Functionality is limited to read-only functions at this stage, but it may be further developed into a tool that makes it easier to deploy large numbers of Canarytokens or make mass changes to Canaries.  
+**Purpose:** This is a command-line version of the Canary console. Functionality is limited to read-only functions at this stage, but it may be further developed into a tool that makes it easier to deploy large numbers of Canarytokens or make mass changes to the Canaries.  
 **Usage:** Type ```python3 canaryconsole.py``` and it will do the rest, including prompting for console name and API key.
 
 ### canarygen_awscreds_auto.py
