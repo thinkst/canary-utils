@@ -134,11 +134,6 @@ Else {
     Write-Host -ForegroundColor Green "[*] Canary API available for service!"
 }
 
-# If targets are already known drop tokens
-if ($ToTokenTargets -eq '') {
-
-}
-
 # this will host the OU that the tool will work on
 $ChosenOU = New-Object -TypeName Microsoft.ActiveDirectory.Management.ADOrganizationalUnit -ErrorAction Stop
 
