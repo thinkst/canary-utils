@@ -11,17 +11,18 @@
     ###################
     How does this work?
     ###################
-    1. Place the computers you want to drop tokens to in an OU
+    1. Create a file eg: -OUFilename ComputerOUs.txt that has a line for each OU you'd like to target.
+       Each line can be an OU Name or an OU DistingushedName.
+       You can use: Get-ADOrganizationalUnit -Filter 'Name -like "*"' | Format-Table DistinguishedName -A
+       to get the desired list.
     2. Run powershell as a user that has remote read/write access on the admin shares
     of the remote hosts 'namely C$' ... either log in as such user, or use `runas /user:...`
     3. Provide your Console domain + API auth
-    4. Type the path of the OUFilename
+    4. Type the full path of the OUFilename
 
-    Last Edit: 2021-01-25
-    Version 1.0 - initial release
 
 .EXAMPLE
-    .\Invoke-CreateCanarytokensAD-Wrapper.ps1 -OUFilename "/Full/Path/TO/List of OUs.csv"  -TargetDirectory secret -TokenType aws-id -TokenFilename aws_secret.txt
+    .\Invoke-CreateCanarytokensAD-Wrapper.ps1 -OUFilename "/Full/Path/TO/ComputerOUs.txt"  -TargetDirectory secret -TokenType aws-id -TokenFilename aws_secret.txt
     creates an AWS-ID Canarytoken, using aws_secret.txt as the filename, and place it under c:\secret
     for all Computers in all OUs listed in `-OUFilename`.
 #>
@@ -51,8 +52,10 @@ Param (
     [string]$TokenType = 'doc-msword' ,
     [string]$TokenFilename = "credentials.docx",
 
-    # Name of the file containing OU's. One OU per line.
-    # eg: TEST.COM\TEST\NESTED\OUNAMES\Users
+    # Name of the file containing OU Names or DistinguishedName. One OU per line.
+    # Use: Get-ADOrganizationalUnit -Filter 'Name -like "*"' | Format-Table DistinguishedName -A
+    #      to create such a file.
+    # Example Entry: OU=Legal,OU=OurWorkstations,DC=stretch,DC=local
     # Each computer in this OU will have a token dropped to it.
     # The user that invoked the script should be able to map and write to admin shares
     # on those hosts.
