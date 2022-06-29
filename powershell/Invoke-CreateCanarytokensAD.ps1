@@ -1,39 +1,39 @@
 <#
 .SYNOPSIS
-    Creates Canarytokens and drops them on a list of remote windows in an AD OU,
+Creates Canarytokens and drops them on a list of remote windows in an AD OU,
 
 .NOTES
-    For this tool to work, you must have your Canary Console API enabled, please 
-    follow this link to learn how to do so:
-    https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-
+For this tool to work, you must have your Canary Console API enabled, please
+follow this link to learn how to do so:
+https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-
 
-    ###################
-    How does this work?
-    ###################
-    1. Place the computers you want to drop tokens to in an OU
-    2. Run powershell as a user that has remote read/write access on the admin shares
-    of the remote hosts 'namely C$' ... either log in as such user, or use `runas /user:...`
-    3. Provide your Console domain + API auth
-    4. Type the name of the OU
-    
-    Last Edit: 2021-01-25
-    Version 1.0 - initial release
+###################
+How does this work?
+###################
+1. Place the computers you want to drop tokens to in an OU
+2. Run powershell as a user that has remote read/write access on the admin shares
+of the remote hosts 'namely C$' ... either log in as such user, or use `runas /user:...`
+3. Provide your Console domain + API auth
+4. Type the name of the OU
+
+Last Edit: 2022-06-29
+Version 1.0 - initial release
 
 .EXAMPLE
-    .\Invoke-CreateCanarytokensAD.ps1
-    This will run the tool with the default params
+.\Invoke-CreateCanarytokensAD.ps1
+This will run the tool with the default params
 
-    .\Invoke-CreateCanarytokensAD.ps1 -TargetDirectory secret -TokenType aws-id -TokenFilename aws_secret.txt
-    creates an AWS-ID Canarytoken, using aws_secret.txt as the filename, and place it under c:\secret
+.\Invoke-CreateCanarytokensAD.ps1 -TargetDirectory secret -TokenType aws-id -TokenFilename aws_secret.txt
+creates an AWS-ID Canarytoken, using aws_secret.txt as the filename, and place it under c:\secret
 #>
 
 Param (
-    # Full canary domain (e.g. aabbccdd.canary.tools), 
-    # if empty, will be asked for interactively 
+    # Full canary domain (e.g. aabbccdd.canary.tools),
+    # if empty, will be asked for interactively
     [string]$Domain = '',
 
-    # API Auth token, 
-    # if empty, will be asked for interactively 
+    # API Auth token,
+    # if empty, will be asked for interactively
     [string]$ApiAuth = '',
 
     # Set the target Directory on hosts' root
@@ -52,39 +52,42 @@ Param (
     [string]$TokenType = 'doc-msword' ,
     [string]$TokenFilename = "credentials.docx",
 
-    # Name of the OU.
+    # Name or DistinguishedName of the OU.
     # Each computer in this OU will have a token dropped to it.
     # The user that invoked the script should be able to map and write to admin shares
     # on those hosts.
-    # if empty, will be asked for interactively 
+    # Example of a DistinguishedName "OU=Finance,OU=OurWorkstations,DC=stretch,DC=local"
+    # if empty, will be asked for interactively
     [string]$OU = ''
-)
+    )
 
-# We force TLS1.2 since our API doesn't support lower.
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
-Set-StrictMode -Version 2.0
+    # We force TLS1.2 since our API doesn't support lower.
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+    Set-StrictMode -Version 2.0
 
-Write-Host -ForegroundColor Green "[***] Thinkst Canarytoken Dropper [***]"
-Write-Host -ForegroundColor Green "              Version: 1.1`n`n"
+    Write-Host -ForegroundColor Green "[***] Thinkst Canarytoken Dropper [***]"
+    Write-Host -ForegroundColor Green "              Version: 1.1`n`n"
 
-# Connect to API
-# Get Console Domain
-$ApiHost = [string]::Empty
-if ($Domain -ne '') {
-    $ApiHost = $Domain
-} else {
-    Do {
-        $ApiHost = Read-Host -Prompt "[+] Enter your Full Canary domain (e.g. 'xyz.canary.tools')"
-    } Until (($ApiHost.Length -gt 0) -and ([System.Net.Dns]::GetHostEntry($ApiHost).AddressList[0].IPAddressToString))
-}
+    # Connect to API
+    # Get Console Domain
+    $ApiHost = [string]::Empty
+    if ($Domain -ne '') {
+        $ApiHost = $Domain
+    }
+    else {
+        Do {
+            $ApiHost = Read-Host -Prompt "[+] Enter your Full Canary domain (e.g. 'xyz.canary.tools')"
+        } Until (($ApiHost.Length -gt 0) -and ([System.Net.Dns]::GetHostEntry($ApiHost).AddressList[0].IPAddressToString))
+    }
 
-# Get API Auth Token
-$ApiToken = [string]::Empty
-if ($ApiAuth -ne '') {
-    $ApiToken = $ApiAuth
-} else {
-    $ApiTokenSecure = New-Object System.Security.SecureString
-    Do {
+    # Get API Auth Token
+    $ApiToken = [string]::Empty
+    if ($ApiAuth -ne '') {
+        $ApiToken = $ApiAuth
+    }
+    else {
+        $ApiTokenSecure = New-Object System.Security.SecureString
+        Do {
         $ApiTokenSecure = Read-Host -AsSecureString -Prompt "[+] Enter your Canary API key"
     } Until ($ApiTokenSecure.Length -gt 0)
     $ApiToken = (New-Object System.Management.Automation.PSCredential "user", $ApiTokenSecure).GetNetworkCredential().Password
@@ -112,10 +115,10 @@ if ($TokenFilename -eq '') {
 }
 
 Write-Host -ForegroundColor Green "[*] Starting Script with the following params:
-        Console Domain   = $ApiHost
-        Target Directory = $TargetDirectory 
-        Token Type       = $TokenType
-        Token Filename   = $TokenFilename
+Console Domain   = $ApiHost
+Target Directory = $TargetDirectory
+Token Type       = $TokenType
+Token Filename   = $TokenFilename
 "
 
 $ApiBaseURL = '/api/v1'
@@ -143,6 +146,11 @@ if ($OU -eq '') {
 
 $OUs = Get-ADOrganizationalUnit -Filter "Name -Like `"$OU`"" -ErrorAction Stop
 
+# Nothing matched the OU? Checking DistinguishedName
+If (-Not ($OUs)) {
+    $OUs = Get-ADOrganizationalUnit -Filter "DistinguishedName -Like `"$OU`"" -ErrorAction Stop
+}
+
 # Nothing matched the OU?
 If (-Not ($OUs)) {
     Write-Host -ForegroundColor Red "[X] we didn't find any OUs matching `"$OU`", please verify the spelling."
@@ -153,9 +161,11 @@ If (-Not ($OUs)) {
 # Results can be either a single object (for single matche),
 # or an array of objects (if the pattern matches more than one OU in their domain)
 
-If ($OUs -isnot [System.Array]) { # single match
+If ($OUs -isnot [System.Array]) {
+    # single match
     $ChosenOU = $OUs
-} else {
+}
+else {
     Write-Host -ForegroundColor Yellow "[*] We found *more* than one OU that match the filter!"
     $chosenOUInt = 0
     Do {
@@ -163,7 +173,7 @@ If ($OUs -isnot [System.Array]) { # single match
         Write-Host -ForegroundColor Yellow "[*] List of OUs that match '$OU':"
         foreach ($eachOU in $OUs) {
             Write-Host -ForegroundColor Yellow "    [$i] Name: $($eachOU.Name), DistinguishedName: $($eachOU.DistinguishedName)"
-            $i += 1 
+            $i += 1
         }
         $chosenOU = Read-Host -Prompt "[!] Please type the number corresponding to the OU you want to drop Canarytokens to (e.g. 0 or 1 or 2 ... etc.)"
         $chosenOUInt = $chosenOU -as [int]
@@ -174,8 +184,8 @@ If ($OUs -isnot [System.Array]) { # single match
 }
 
 Write-Host -ForegroundColor Yellow "[*] The following OU has been picked:
-    OU Name = $($ChosenOU.Name)
-    OU DistinguishedName = $($ChosenOU.DistinguishedName) 
+OU Name = $($ChosenOU.Name)
+OU DistinguishedName = $($ChosenOU.DistinguishedName)
 "
 
 # fetching list of computers...
@@ -188,72 +198,80 @@ If (-Not ($Targets)) {
     Exit
 }
 
-# To simplify next code block, we want $Targets to be an array, 
+# To simplify next code block, we want $Targets to be an array,
 # even if there's only one match ... this should do the trick
 $Targets = @() + $Targets
 
-# Last chance to verify parameters (and bail out)
-Write-Host -ForegroundColor Green "[*] Found a total number of '$($Targets.length)' targets:"
-ForEach ($Target in $Targets) {
-    $TargetHostname = $Target.DNSHostName
-    Write-Host -ForegroundColor Yellow "    - $TargetHostname"
-}
-Write-Host -ForegroundColor Yellow "[!] Please verify the list of hosts!"
-Do {
-    $proceed = Read-Host -Prompt "[!] ARE YOU SURE YOU WANT TO PROCEED? [Y/N]"
-    If ($proceed -eq "n") { Exit }
-} Until ($proceed -eq "y")
 
-# We should be good to go!
-ForEach ($Target in $Targets) {
-    $TargetHostname = $Target.DNSHostName
-    Write-Host -ForegroundColor Green "[*] Working with '$TargetHostname' ..."
+function DropTokens {
+    param(
+        # Array of targets
+        [string[]]
+        $TargetsToToken
+    )
+    # Last chance to verify parameters (and bail out)
+    Write-Host -ForegroundColor Green "[*] Found a total number of '$($Targets.length)' targets:"
+    ForEach ($Target in $Targets) {
+        $TargetHostname = $Target.DNSHostName
+        Write-Host -ForegroundColor Yellow "    - $TargetHostname"
+    }
+    Write-Host -ForegroundColor Yellow "[!] Please verify the list of hosts!"
+    Do {
+        $proceed = Read-Host -Prompt "[!] ARE YOU SURE YOU WANT TO PROCEED? [Y/N]"
+        If ($proceed -eq "n") { Exit }
+    } Until ($proceed -eq "y")
 
-    $NetworkPath = "\\$TargetHostname\C`$\$TargetDirectory"
-    Write-Host -ForegroundColor Green "[*] Checking if '$NetworkPath' exists..."
+    # We should be good to go!
+    ForEach ($Target in $Targets) {
+        $TargetHostname = $Target.DNSHostName
+        Write-Host -ForegroundColor Green "[*] Working with '$TargetHostname' ..."
 
-    # Create the target Dir if not exist
-    If (!(Test-Path $NetworkPath)) {
-        Write-Host -ForegroundColor Green "[*] '$NetworkPath' doesn't exist, creating it ..."
-        New-Item -ItemType Directory -Force -Verbose -Path "$NetworkPath"
-        if (-not $?) {
-            Write-Host -ForegroundColor Red "[X] Error Creating '$NetworkPath', skipping to next host"
+        $NetworkPath = "\\$TargetHostname\C`$\$TargetDirectory"
+        Write-Host -ForegroundColor Green "[*] Checking if '$NetworkPath' exists..."
+
+        # Create the target Dir if not exist
+        If (!(Test-Path $NetworkPath)) {
+            Write-Host -ForegroundColor Green "[*] '$NetworkPath' doesn't exist, creating it ..."
+            New-Item -ItemType Directory -Force -Verbose -Path "$NetworkPath"
+            if (-not $?) {
+                Write-Host -ForegroundColor Red "[X] Error Creating '$NetworkPath', skipping to next host"
+                Continue
+            }
+        }
+        # Check whether token already exists
+        $OutputFileName = "$NetworkPath\$TokenFilename"
+        Write-Host -ForegroundColor Green "[*] Dropping '$OutputFileName' ..."
+
+        If (Test-Path $OutputFileName) {
+            Write-Host -ForegroundColor Yellow "[!] Skipping $TargetHostname, file already exists."
             Continue
         }
-    }
-    # Check whether token already exists
-    $OutputFileName = "$NetworkPath\$TokenFilename"
-    Write-Host -ForegroundColor Green "[*] Dropping '$OutputFileName' ..."
 
-    If (Test-Path $OutputFileName) {
-        Write-Host -ForegroundColor Yellow "[!] Skipping $TargetHostname, file already exists."
-        Continue        
-    }
+        # Create token
+        $TokenName = $OutputFileName
+        $PostData = @{
+            auth_token = "$ApiToken"
+            kind       = "$TokenType"
+            memo       = "$TargetHostname - $TokenName"
+        }
+        Write-Host -ForegroundColor Green "[*] Hitting API to create token ..."
+        $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/create" -Body $PostData
+        $Result = $CreateResult.result
+        If ($Result -ne 'success') {
+            Write-Host -ForegroundColor Red "[X] Creation of $TokenName failed."
+            Exit
+        }
+        Else {
+            $WordTokenID = $($CreateResult).canarytoken.canarytoken
+            Write-Host -ForegroundColor Green "[*] Token Created (ID: $WordTokenID)."
+        }
 
-    # Create token
-    $TokenName = $OutputFileName
-    $PostData = @{
-        auth_token = "$ApiToken"
-        kind       = "$TokenType"
-        memo       = "$TargetHostname - $TokenName"
-    }
-    Write-Host -ForegroundColor Green "[*] Hitting API to create token ..."
-    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/create" -Body $PostData
-    $Result = $CreateResult.result
-    If ($Result -ne 'success') {
-        Write-Host -ForegroundColor Red "[X] Creation of $TokenName failed."
-        Exit
-    }
-    Else {
-        $WordTokenID = $($CreateResult).canarytoken.canarytoken
-        Write-Host -ForegroundColor Green "[*] Token Created (ID: $WordTokenID)."
+        # Download token
+        Write-Host -ForegroundColor Green "[*] Downloading Token from Console..."
+        Invoke-RestMethod -Method Get -Uri "https://$ApiHost$ApiBaseURL/canarytoken/download?auth_token=$ApiToken&canarytoken=$WordTokenID" -OutFile "$OutputFileName"
+        Write-Host -ForegroundColor Green "[*] Token Successfully written to destination: '$OutputFileName'."
     }
 
-    # Download token
-    Write-Host -ForegroundColor Green "[*] Downloading Token from Console..."
-    Invoke-RestMethod -Method Get -Uri "https://$ApiHost$ApiBaseURL/canarytoken/download?auth_token=$ApiToken&canarytoken=$WordTokenID" -OutFile "$OutputFileName"
-    Write-Host -ForegroundColor Green "[*] Token Successfully written to destination: '$OutputFileName'."
+    Write-Host -ForegroundColor Green "`n[*] Done!"
 }
-
-Write-Host -ForegroundColor Green "`n[*] Done!"
-
+DropTokens -TargetsToToken $Targets
