@@ -164,8 +164,8 @@ mv $OutputFileName $zipName
 Expand-Archive -path $zipName -DestinationPath $tokeneniseFile.Split('.')[0]
 
 $xmlToEdit = $tokeneniseFile.Split('.')[0] + '\word\document.xml'
-(Get-Content -Path $xmlToEdit) -replace 'AKIASJ2WZMVFQGNWG4HA', $ReplaceText | Set-Content $xmlToEdit
-(Get-Content -Path $xmlToEdit) -replace 'zXqAw2NlqNdha1IVCBNkIdv74AdfPw6MMb6xKBw5', $ReplaceText2 | Set-Content $xmlToEdit
+(Get-Content -Path $xmlToEdit) -replace $FindText, $ReplaceText | Set-Content $xmlToEdit
+(Get-Content -Path $xmlToEdit) -replace $FindText2, $ReplaceText2 | Set-Content $xmlToEdit
 
 Remove-Item $zipName
 $compressPath = $tokeneniseFile.Split('.')[0] + "\*"
