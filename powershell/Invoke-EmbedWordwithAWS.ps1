@@ -10,9 +10,9 @@ $aws_FlockID = 'flock:default' # Enter desired flock to place tokens in.
 $word_FlockID = 'flock:default' # Enter desired flock to place tokens in.
 $tokeneniseFile = 'C:\ProgramData\template.docx' # This is location and filename of the template that will be downloaded and tokenised.
 $pathToTemplateFile = 'https://api.github.com/repos/repo_owner/private_repo_name/contents/sample.docx' # This is where the word template is hosted
-$FindText = "AKIASJ2WZMVFQGNWG4HA" # This string should be present in your template, and will then be updated with the newly created AWS API Key ID
-$FindText2 = "zXqAw2NlqNdha1IVCBNkIdv74AdfPw6MMb6xKBw5" # This string should be present in your template, and will then be updated with the newly created AWS API Key
-$Personal_Access_Token = "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" # Personal access token generated on Github
+$FindText = 'AKIASJ2WZMVFQGNWG4HA' # This string should be present in your template, and will then be updated with the newly created AWS API Key ID
+$FindText2 = 'zXqAw2NlqNdha1IVCBNkIdv74AdfPw6MMb6xKBw5' # This string should be present in your template, and will then be updated with the newly created AWS API Key
+$Personal_Access_Token = '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' # Personal access token generated on Github
 
 # randomise the filename and folder drop path
 
