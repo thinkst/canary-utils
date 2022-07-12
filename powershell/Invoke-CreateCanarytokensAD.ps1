@@ -68,6 +68,9 @@ Param (
     Write-Host -ForegroundColor Green "[***] Thinkst Canarytoken Dropper [***]"
     Write-Host -ForegroundColor Green "              Version: 1.1`n`n"
 
+    # Import ActiveDirectory functions
+    Import-Module ActiveDirectory
+
     # Connect to API
     # Get Console Domain
     $ApiHost = [string]::Empty
