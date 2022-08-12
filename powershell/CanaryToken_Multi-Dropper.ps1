@@ -222,7 +222,7 @@ Drop-Token_Word_Macro
 function Drop-Token_Excel{
     param (
         [string]$TokenType = 'doc-msexcel' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = "excel.xls", # Desired Token file name.
+        [string]$TokenFilename = "excel.xlsx", # Desired Token file name.
         [string]$TargetDirectory = "c:\excel_directory" # Local location to drop the token into.
     )
 
