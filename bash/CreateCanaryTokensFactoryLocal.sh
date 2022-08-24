@@ -23,12 +23,12 @@
 #    4. Make sure the host has access to the internet.
 #    5. Run script as a user that has read/write access on the target directory.
 #    
-#    Last Edit: 2021-05-18
+#    Last Edit: 2022-08-24
 #    Version 1.1 - release candidate
 #
 #.EXAMPLE
 #    sh .\CreateCanarytokensFactoryLocal.sh
-#    This will run the tool with the default params, asking interactively for missing ones.
+#    This will run the tool with the default flock, asking interactively for missing params.
 #    Flags 
 #    -d Domain e.g aabbccdd.canary.tools
 #    -a FactoryAuth ""
@@ -40,15 +40,15 @@
 #    sh .\CreateCanarytokensFactoryLocal.sh -d aabbccdd.canary.tools -a XXYYZZ -f flock:xxyyzz -o "~/secret" -t aws-id -n aws_secret.txt
 #    creates an AWS-ID Canarytoken, using aws_secret.txt as the filename, and places it under ~/secret
 
-#   Supported tokens are: "aws-id":"AWS API Key","dns":"DNS","doc-msword":"MS Word Document","http":"Web Bug","msexcel-macro":"MS Excel Macro Document","msword-macro":"MS Word Macro Document","pdf-acrobat-reader":"Acrobat PDF","slack-api":"Slack API Key"
+#   Supported tokens are: "aws-id":"AWS API Key","doc-msword":"MS Word Document","msexcel-macro":"MS Excel Macro Document","msword-macro":"MS Word Macro Document","pdf-acrobat-reader":"Acrobat PDF","slack-api":"Slack API Key"
 
 #VARIABLES
 DOMAIN=""
 FACTORYAUTH=""
-FLOCKID="flock:xxxxyyyzzz"
+FLOCKID="flock:default"
 TARGETDIRECTORY=""
-TOKENTYPE="aws-id"
-TOKENFILENAME="myawscreds.txt"
+TOKENTYPE=""
+TOKENFILENAME=""
 
 #Set script flags
 while getopts d:a:f:o:t:n: flag
@@ -66,13 +66,30 @@ done
 #Check for jq package
 if ! command -v jq &> /dev/null
 then
-echo '\n [X] jq package not found, please install : "sudo apt-get install jq"'
+echo '\n[X] jq package not found, please install : "sudo apt-get install jq"'
 exit -1
 else
-echo '\n [*] jq package found proceeding'
+echo '\n[*] jq package found, proceeding'
 fi
 
 #Collect unset variables from user.
+if [ -z "$TOKENTYPE" ]
+then
+echo '\nEnter your desired token type\n> aws-id | doc-msword | msexcel-macro | msword-macro | pdf-acrobat-reader | slack-api | windows-dir'
+read TOKENTYPE
+fi
+
+#Don't continue unless $TOKENTYPE is supported
+case "$TOKENTYPE" in
+    "aws-id"|"doc-msword"|"msexcel-macro"|"msword-macro"|"pdf-acrobat-reader"|"slack-api"|"windows-dir") 
+        echo '\n[*] Token type is downloadable, proceeding'
+        ;;
+    *)
+        echo "\n[X] Token type '$TOKENTYPE' cannot be downloaded."
+        exit 1
+        ;;
+esac
+
 if [ -z "$DOMAIN" ]
 then
 echo '\nEnter your Full Canary domain (e.g. 'xyz.canary.tools')'
@@ -90,11 +107,9 @@ then
 echo '\nEnter your target directory. Leave blank for ~/backup'
 read TARGETDIRECTORY
 fi
-
-if [ -z "$TOKENTYPE" ]
+if [ -z "$TARGETDIRECTORY" ]
 then
-echo '\nEnter your desired Token type'
-read TOKENTYPE
+TARGETDIRECTORY="$HOME/backup"
 fi
 
 if [ -z "$TOKENFILENAME" ]
