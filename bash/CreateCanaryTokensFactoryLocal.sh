@@ -40,7 +40,13 @@
 #    sh .\CreateCanarytokensFactoryLocal.sh -d aabbccdd.canary.tools -a XXYYZZ -f flock:xxyyzz -o "~/secret" -t aws-id -n aws_secret.txt
 #    creates an AWS-ID Canarytoken, using aws_secret.txt as the filename, and places it under ~/secret
 
-#   Supported tokens are: "aws-id":"AWS API Key","doc-msword":"MS Word Document","msexcel-macro":"MS Excel Macro Document","msword-macro":"MS Word Macro Document","pdf-acrobat-reader":"Acrobat PDF","slack-api":"Slack API Key"
+#   Supported tokens are: "aws-id"                : "AWS API Key",
+#                         "doc-msword"            : "MS Word Document",
+#                         "msexcel-macro"         : "MS Excel Macro Document",
+#                         "msword-macro"          : "MS Word Macro Document",
+#                         "pdf-acrobat-reader"    : "Acrobat PDF",
+#                         "slack-api"             : "Slack API Key",
+#                         "windows-dir"           : "Windows Folder"
 
 #VARIABLES
 DOMAIN=""
