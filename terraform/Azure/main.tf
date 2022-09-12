@@ -57,7 +57,7 @@ resource "azurerm_virtual_machine" "main" {
   name                = "mybird"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  vm_size               = "Standard_DS1_v2"
+  vm_size               = "Standard_B1ls"
   network_interface_ids = [azurerm_network_interface.main.id]
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
