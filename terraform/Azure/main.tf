@@ -10,7 +10,9 @@ terraform {
   required_version = ">= 1.1.0"
 }
 
-# Authenticate to Azure as Canary app. Below specifies what fields are needed, consider safer authentication methods for production use as documented by Hashicorp https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret
+# Authenticate to Azure as Canary app. Below specifies what fields are needed. 
+# Consider safer authentication methods for production use as documented by Hashicorp: 
+#   https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret
 provider "azurerm" {
   features {}
   
@@ -63,7 +65,7 @@ resource "azurerm_virtual_machine" "main" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    id = "/subscriptions/<AZURE IMAGE GALLARY LOCATION>/images/AzureCanary-3.6.2-0f374ec"
+    id = "/subscriptions/<AZURE IMAGE GALLERY LOCATION>/images/AzureCanary-3.6.2-0f374ec"
   }
 
   storage_os_disk {
