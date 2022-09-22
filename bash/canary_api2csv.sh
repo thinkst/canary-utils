@@ -1,57 +1,194 @@
 #!/bin/bash
+
+# This script is intended to get basic alert information into a SIEM. Rather than
+# pulling full alert information, this script pulls just enough data to correlate
+# Canary and Canarytoken alerts with other events or to trigger the IR process.
 #
-# Intended to get basic alert information into a SIEM. Rather than pulling full
-# alert information, this script pulls just enough data to correlate Canary and
-# Canarytoken alerts with other events or to trigger the IR process.
-#
-# Initially, this script will pull the last week's worth of information. The
-# script keeps track of events exported and only pulls in new alerts. To
-# reset this script, simply delete the last.txt file in the same directory as 
+# On first run the script will load all events from the console using pagination
+# to prevent GET calls to the console from timing out.
+# All consecutive runs of the script will only load new events and append them
+# to the result file.
+# The script keeps track of events exported and only pulls in new alerts.
+# To reset this script, simply delete the last.txt file in the same directory as 
 # this script.
-
-# TODO: do a console ping that shows usage if ping fails
-# implement error checking for curl/jq commands
-# don't output a file if no data
-
-# Requires curl and jq to be in the path
+#
+# Requires curl and jq to be in $PATH
 # sudo apt install curl jq
 
-# Set this variable to your API token (grab it here: https://1234abcd.canary.tools/settings where "1234abcd" is your unique console's CNAME)
-export token=deadbeef12345678
+# Configure the API authentication token and the domain hash of your console.
+# (Grab it here: https://1234abcd.canary.tools/settings where "1234abcd" is your unique console's CNAME)
+AUTH_TOKEN=deadbeef12345678
+DOMAIN_HASH=1234abcd
 
-# Customize this variable to match your console URL
-export console=1234abcd.canary.tools
+# FILE_NAME=$(date "+%Y%m%d%H%M%S")-$DOMAIN_HASH-alerts.csv
+FILE_NAME=alerts.csv
 
-# Do a console ping - if it fails, print usage (not yet implemented)
+BASE_URL="https://$DOMAIN_HASH.canary.tools"
+LIMIT=500 # The number of incidents to get per page
+INCIDENTS_SINCE=0 # Default to get all incidents
+LOADED_STATE=0 # Boolean variable to track if previous state was recovered
 
-# Date format (one week ago)
-export weekago=`date --date="1 week ago" "+%Y-%m-%d-%H:%M:%S"`
+stop () {
+    if [ $LOADED_STATE -ne 1 ]; then
+        echo "Results saved in $FILE_NAME"
+    else
+        echo "Updated results in $FILE_NAME"
+    fi
+    exit 0
+}
 
-# Date format (current date)
-export currdate=`date "+%Y-%m-%d-%H:%M:%S"`
+fail () {
+    for arg in "$@"; do echo >&2 "$arg"; done
+    exit 1
+}
 
-# Filename date (current date, diff format that's file friendly)
-export filedate=`date "+%Y%m%d%H%M%S"`
+# To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
+create_csv_header () {
+    echo "Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $FILE_NAME
+}
 
-# Complete Filename
-export filename=$filedate-$console-alerts.csv
+extract_incident_data () {
+    local content=$1
+    data=$(jq -r '.incidents[] | [.description | .created_std, .description, .dst_host, .dst_port, .src_host, .src_host_reverse | tostring] | @csv' <<< "$content")
+    if [ $? -ne 0 ]; then
+        fail "jq was unable to parse html content data"
+                "Content: $content"
+    fi
+    echo "$data"
+}
 
-# Base URL
-export baseurl="https://$console/api/v1/incidents/all?auth_token=$token&shrink=true&newer_than"
-
-# Run the jewels
-echo Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS > $filename
-# Check for previous runs
-if [ -f "last.txt" ]; then
-	export lastdate=`cat last.txt`
-	echo Last run was on $lastdate, grabbing everything since then.
-	curl -s "$baseurl=$lastdate" | jq -r '.incidents[] | [.description | .created_std, .description, .dst_host, .dst_port, .src_host, .src_host_reverse | tostring] | @csv' >> $filename
-	echo $currdate > last.txt
-	echo Results saved in $filename.
-else
-	# If no previous runs, do first run
-	echo First run, grabbing the last week of alerts.
-	curl -s "$baseurl=$weekago" | jq -r '.incidents[] | [.description | .created_std, .description, .dst_host, .dst_port, .src_host, .src_host_reverse | tostring] | @csv' >> $filename
-	echo $currdate > last.txt
-	echo Results saved in $filename
+# Check command prerequisites
+if ! command -v curl &> /dev/null; then
+    fail "I require curl but it's not installed.  Aborting."
 fi
+if ! command -v jq &> /dev/null; then
+    fail "I require jq but it's not installed.  Aborting."
+fi
+
+# Ping the console to ensure reachability
+response=$(curl $BASE_URL/api/v1/ping \
+            -d auth_token=$AUTH_TOKEN \
+            --get --silent \
+            --write-out '%{http_code}')
+if [ $? -ne 0 ]; then
+    fail "curl encountered an error"
+            "Response: $response"
+fi
+http_code=$(tail -n1 <<< "$response")  # get the last line
+content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
+
+if [ $http_code -ne 200 ]; then
+    fail "Unable to ping the console" \
+            "HTTP Code: $http_code" \
+            "Content: $content"
+fi
+
+# Check if we have state from the last incidents fetch
+if [ -f "last.txt" ]; then
+    # We have state, so continue from last point and append to result file
+    INCIDENTS_SINCE=`cat last.txt`
+    LOADED_STATE=1
+fi
+
+if [ $LOADED_STATE -ne 1 ]; then
+    echo "No state found, fetching all incidents from the console. (This may take a while)"
+fi
+
+echo "Fetching incidents from console"
+
+# Get incidents
+response=$(curl $BASE_URL/api/v1/incidents/all \
+            -d auth_token=$AUTH_TOKEN \
+            -d incidents_since=$INCIDENTS_SINCE \
+            -d limit=$LIMIT \
+            -d shrink=true \
+            --get --silent \
+            --write-out '%{http_code}')
+if [ $? -ne 0 ]; then
+    fail "curl encountered an error"
+            "Response: $response"
+fi
+http_code=$(tail -n1 <<< "$response")  # get the last line
+content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
+
+if [ $http_code -ne 200 ]; then
+    fail "Error occurred while fetching incident data from console" \
+            "HTTP Code: $http_code"
+            "Content: $content"
+fi
+
+max_updated_id=$(jq -r '.max_updated_id' <<< "$content")
+if [ $? -ne 0 ]; then
+    fail "jq was unable to read the max_updated_id from the html content"
+            "Content: $content"
+fi
+
+if [ $max_updated_id == "null" ]; then
+    fail "No new events found on the console"
+else
+    echo $max_updated_id > last.txt
+fi
+
+cursor=$(jq -r '.cursor | .next' <<< "$content")
+if [ $? -ne 0 ]; then
+    fail "jq was unable to read the cursor from the html content"
+            "Content: $content"
+fi
+
+data=$(extract_incident_data "$content")
+if [ "$data" != "" ]; then
+    if [ $LOADED_STATE -ne 1 ]; then
+        create_csv_header
+    fi
+    echo "$data" >> $FILE_NAME
+fi
+
+# There is not more data to read, we can stop
+if [ $cursor == "null" ]; then
+    stop
+fi
+
+# While we have a pagination cursor keep loading data
+counter=1
+while [ cursor ]
+do
+    echo "Fetching additional incidents from console $counter"
+    ((counter=counter+1))
+
+    response=$(curl $BASE_URL/api/v1/incidents/all \
+                -d auth_token=$AUTH_TOKEN \
+                -d cursor=$cursor \
+                -d shrink=true \
+                --get --silent \
+                --write-out '%{http_code}')
+    if [ $? -ne 0 ]; then
+        fail "curl encountered an error"
+                "Response: $response"
+    fi
+    http_code=$(tail -n1 <<< "$response")  # get the last line
+    content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
+
+    if [ $http_code -ne 200 ]; then
+        fail "Error occurred while fetching incident data from console" \
+                "HTTP Code: $http_code"
+                "Content: $content"
+    fi
+
+    cursor=$(jq -r '.cursor | .next' <<< "$content")
+    if [ $? -ne 0 ]; then
+        fail "jq was unable to read the cursor from the html content"
+                "Content: $content"
+    fi
+
+    data=$(extract_incident_data "$content")
+    if [ "$data" != "" ]; then
+        echo "$data" >> $FILE_NAME
+    fi
+
+    # There is not more data to read, we can stop
+    if [ $cursor == "null" ]; then
+        break
+    fi
+done
+
+stop
