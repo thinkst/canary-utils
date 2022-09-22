@@ -143,7 +143,7 @@ if [ "$data" != "" ]; then
     echo "$data" >> $FILE_NAME
 fi
 
-# There is not more data to read, we can stop
+# There is no more data to read, we can stop
 if [ $cursor == "null" ]; then
     stop
 fi
@@ -185,10 +185,8 @@ do
         echo "$data" >> $FILE_NAME
     fi
 
-    # There is not more data to read, we can stop
+    # There is no more data to read, we can stop
     if [ $cursor == "null" ]; then
-        break
+        stop
     fi
 done
-
-stop
