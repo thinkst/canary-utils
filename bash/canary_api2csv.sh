@@ -124,7 +124,8 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $max_updated_id == "null" ]; then
-    fail "No new events found on the console"
+    echo "No new events found on the console"
+    exit 0
 else
     echo $max_updated_id > last.txt
 fi
