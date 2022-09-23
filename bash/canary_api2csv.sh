@@ -20,19 +20,27 @@
 AUTH_TOKEN=deadbeef12345678
 DOMAIN_HASH=1234abcd
 
-# FILE_NAME=$(date "+%Y%m%d%H%M%S")-$DOMAIN_HASH-alerts.csv
-FILE_NAME=alerts.csv
+# file_name=$(date "+%Y%m%d%H%M%S")-$DOMAIN_HASH-alerts.csv
+file_name=alerts.csv
 
-BASE_URL="https://$DOMAIN_HASH.canary.tools"
-LIMIT=500 # The number of incidents to get per page
-INCIDENTS_SINCE=0 # Default to get all incidents
-LOADED_STATE=0 # Boolean variable to track if previous state was recovered
+base_url="https://$DOMAIN_HASH.canary.tools"
+page_size=500 # The number of incidents to get per page
+incidents_since=0 # Default to get all incidents
+loaded_state=0 # Boolean variable to track if previous state was recovered
+
+sort_results () {
+    cp $file_name "$file_name.unsorted"
+    head -n1 "$file_name.unsorted" > $file_name # Save the header in the file
+    tail -n+2 "$file_name.unsorted" | sort -k1 -n -t"," >> $file_name # Sort the file
+    rm -f "$file_name.unsorted"
+}
 
 stop () {
-    if [ $LOADED_STATE -ne 1 ]; then
-        echo "Results saved in $FILE_NAME"
+    sort_results
+    if [ $loaded_state -ne 1 ]; then
+        echo "Results saved in $file_name"
     else
-        echo "Updated results in $FILE_NAME"
+        echo "Updated results in $file_name"
     fi
     exit 0
 }
@@ -44,7 +52,7 @@ fail () {
 
 # To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
 create_csv_header () {
-    echo "Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $FILE_NAME
+    echo "Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $file_name
 }
 
 extract_incident_data () {
@@ -66,12 +74,12 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Ping the console to ensure reachability
-response=$(curl $BASE_URL/api/v1/ping \
+response=$(curl $base_url/api/v1/ping \
             -d auth_token=$AUTH_TOKEN \
-            --get --silent \
-            --write-out '%{http_code}')
+            --get --silent --show-error \
+            --write-out '%{http_code}' 2>&1)
 if [ $? -ne 0 ]; then
-    fail "curl encountered an error"
+    fail "curl encountered an error" \
             "Response: $response"
 fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
@@ -86,26 +94,26 @@ fi
 # Check if we have state from the last incidents fetch
 if [ -f "last.txt" ]; then
     # We have state, so continue from last point and append to result file
-    INCIDENTS_SINCE=`cat last.txt`
-    LOADED_STATE=1
+    incidents_since=`cat last.txt`
+    loaded_state=1
 fi
 
-if [ $LOADED_STATE -ne 1 ]; then
+if [ $loaded_state -ne 1 ]; then
     echo "No state found, fetching all incidents from the console. (This may take a while)"
 fi
 
 echo "Fetching incidents from console"
 
 # Get incidents
-response=$(curl $BASE_URL/api/v1/incidents/all \
+response=$(curl $base_url/api/v1/incidents/all \
             -d auth_token=$AUTH_TOKEN \
-            -d incidents_since=$INCIDENTS_SINCE \
-            -d limit=$LIMIT \
+            -d incidents_since=$incidents_since \
+            -d limit=$page_size \
             -d shrink=true \
-            --get --silent \
+            --get --silent --show-error \
             --write-out '%{http_code}')
 if [ $? -ne 0 ]; then
-    fail "curl encountered an error"
+    fail "curl encountered an error" \
             "Response: $response"
 fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
@@ -138,10 +146,10 @@ fi
 
 data=$(extract_incident_data "$content")
 if [ "$data" != "" ]; then
-    if [ $LOADED_STATE -ne 1 ]; then
+    if [ $loaded_state -ne 1 ]; then
         create_csv_header
     fi
-    echo "$data" >> $FILE_NAME
+    echo "$data" >> $file_name
 fi
 
 # There is no more data to read, we can stop
@@ -156,14 +164,14 @@ do
     echo "Fetching additional incidents from console $counter"
     ((counter=counter+1))
 
-    response=$(curl $BASE_URL/api/v1/incidents/all \
+    response=$(curl $base_url/api/v1/incidents/all \
                 -d auth_token=$AUTH_TOKEN \
                 -d cursor=$cursor \
                 -d shrink=true \
-                --get --silent \
+                --get --silent --show-error \
                 --write-out '%{http_code}')
     if [ $? -ne 0 ]; then
-        fail "curl encountered an error"
+        fail "curl encountered an error" \
                 "Response: $response"
     fi
     http_code=$(tail -n1 <<< "$response")  # get the last line
@@ -183,7 +191,7 @@ do
 
     data=$(extract_incident_data "$content")
     if [ "$data" != "" ]; then
-        echo "$data" >> $FILE_NAME
+        echo "$data" >> $file_name
     fi
 
     # There is no more data to read, we can stop
