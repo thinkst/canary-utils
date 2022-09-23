@@ -107,9 +107,9 @@ if [ $http_code -ne 200 ]; then
 fi
 
 # Check if we have state from the last incidents fetch
-if [ -f "${state_store_file_name}" ]; then
+if [ -f "$state_store_file_name" ]; then
     # We have state, so continue from last point and append to result file
-    incidents_since=`cat ${state_store_file_name}`
+    incidents_since=`cat $state_store_file_name`
     loaded_state=1
 fi
 
@@ -150,7 +150,7 @@ if [ $max_updated_id == "null" ]; then
     echo "No new events found on the console"
     exit 0
 else
-    echo $max_updated_id > last.txt
+    echo $max_updated_id > $state_store_file_name
 fi
 
 cursor=$(jq -r '.cursor | .next' <<< "$content")
