@@ -9,8 +9,8 @@
 # All consecutive runs of the script will only load new events and append them
 # to the result file.
 # The script keeps track of events exported and only pulls in new alerts.
-# To reset this script, simply delete the last.txt file in the same directory as 
-# this script.
+# To reset this script, simply delete the ${domain_hash}_state_store.txt
+# file saved alongside the results file ${domain_hash}_alerts.csv.
 #
 # Requires curl and jq to be in $PATH
 # sudo apt install curl jq
@@ -35,8 +35,8 @@ else
     domain_hash="${DOMAIN_HASH}"
 fi
 
-# file_name=$(date "+%Y%m%d%H%M%S")-$domain_hash-alerts.csv
-file_name=alerts.csv
+results_file_name="${domain_hash}_alerts.csv"
+state_store_file_name="${domain_hash}_state_store.txt"
 
 base_url="https://$domain_hash.canary.tools"
 page_size=500 # The number of incidents to get per page
@@ -44,18 +44,18 @@ incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
 
 sort_results () {
-    cp $file_name "$file_name.unsorted"
-    head -n1 "$file_name.unsorted" > $file_name # Save the header in the file
-    tail -n+2 "$file_name.unsorted" | sort -k1 -n -t"," >> $file_name # Sort the file
-    rm -f "$file_name.unsorted"
+    cp $results_file_name "$results_file_name.unsorted"
+    head -n1 "$results_file_name.unsorted" > $results_file_name # Save the header in the file
+    tail -n+2 "$results_file_name.unsorted" | sort -k1 -n -t"," >> $results_file_name # Sort the file
+    rm -f "$results_file_name.unsorted"
 }
 
 stop () {
     sort_results
     if [ $loaded_state -ne 1 ]; then
-        echo "Results saved in $file_name"
+        echo "Results saved in $results_file_name"
     else
-        echo "Updated results in $file_name"
+        echo "Updated results in $results_file_name"
     fi
     exit 0
 }
@@ -67,7 +67,7 @@ fail () {
 
 # To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
 create_csv_header () {
-    echo "Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $file_name
+    echo "Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $results_file_name
 }
 
 extract_incident_data () {
@@ -107,9 +107,9 @@ if [ $http_code -ne 200 ]; then
 fi
 
 # Check if we have state from the last incidents fetch
-if [ -f "last.txt" ]; then
+if [ -f "${state_store_file_name}" ]; then
     # We have state, so continue from last point and append to result file
-    incidents_since=`cat last.txt`
+    incidents_since=`cat ${state_store_file_name}`
     loaded_state=1
 fi
 
@@ -164,7 +164,7 @@ if [ "$data" != "" ]; then
     if [ $loaded_state -ne 1 ]; then
         create_csv_header
     fi
-    echo "$data" >> $file_name
+    echo "$data" >> $results_file_name
 fi
 
 # There is no more data to read, we can stop
@@ -206,7 +206,7 @@ do
 
     data=$(extract_incident_data "$content")
     if [ "$data" != "" ]; then
-        echo "$data" >> $file_name
+        echo "$data" >> $results_file_name
     fi
 
     # There is no more data to read, we can stop
