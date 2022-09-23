@@ -52,6 +52,7 @@ sort_results () {
 
 stop () {
     sort_results
+    echo '' # Newline to not override status feedback
     if [ $loaded_state -ne 1 ]; then
         echo "Results saved in $results_file_name"
     else
@@ -61,6 +62,7 @@ stop () {
 }
 
 fail () {
+    echo '' # Newline to not override status feedback
     for arg in "$@"; do echo >&2 "$arg"; done
     exit 1
 }
@@ -117,7 +119,9 @@ if [ $loaded_state -ne 1 ]; then
     echo "No state found, fetching all incidents from the console. (This may take a while)"
 fi
 
-echo "Fetching incidents from console"
+echo "Fetching incidents from console: $base_url"
+echo -ne "Working: ."
+# echo -ne "/\r"
 
 # Get incidents
 response=$(curl $base_url/api/v1/incidents/all \
@@ -147,6 +151,7 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ $max_updated_id == "null" ]; then
+    echo '' # Newline to not override status feedback
     echo "No new events found on the console"
     exit 0
 else
@@ -173,11 +178,9 @@ if [ $cursor == "null" ]; then
 fi
 
 # While we have a pagination cursor keep loading data
-counter=1
 while [ cursor ]
 do
-    echo "Fetching additional incidents from console $counter"
-    ((counter=counter+1))
+    echo -ne "."
 
     response=$(curl $base_url/api/v1/incidents/all \
                 -d auth_token=$auth_token \
