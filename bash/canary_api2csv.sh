@@ -42,11 +42,12 @@ base_url="https://$domain_hash.canary.tools"
 page_size=500 # The number of incidents to get per page
 incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
+sort_on_column=1 # Set the column on which the csv should be sorted on update
 
 sort_results () {
     cp $results_file_name "$results_file_name.unsorted"
     head -n1 "$results_file_name.unsorted" > $results_file_name # Save the header in the file
-    tail -n+2 "$results_file_name.unsorted" | sort -k1 -n -t"," >> $results_file_name # Sort the file
+    tail -n+2 "$results_file_name.unsorted" | sort -t ',' -k $sort_on_column,$sort_on_column -n >> $results_file_name # Sort the file1
     rm -f "$results_file_name.unsorted"
 }
 
@@ -69,14 +70,14 @@ fail () {
 
 # To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
 create_csv_header () {
-    echo "Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $results_file_name
+    echo "Updated ID,Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $results_file_name
 }
 
 extract_incident_data () {
     local content=$1
-    data=$(jq -r '.incidents[] | [.description | .created_std, .description, .dst_host, .dst_port, .src_host, .src_host_reverse | tostring] | @csv' <<< "$content")
+    data=$(jq -r '.incidents[] | [.updated_id, .description.created_std, .description.description, .description.dst_host, .description.dst_port, .description.src_host, .description.src_host_reverse] | @csv' <<< "$content")
     if [ $? -ne 0 ]; then
-        fail "jq was unable to parse html content data"
+        fail "jq was unable to parse html content data" \
                 "Content: $content"
     fi
     echo "$data"
@@ -140,13 +141,13 @@ content=$(sed '$ d' <<< "$response")   # get all but the last line which contain
 
 if [ $http_code -ne 200 ]; then
     fail "Error occurred while fetching incident data from console" \
-            "HTTP Code: $http_code"
+            "HTTP Code: $http_code" \
             "Content: $content"
 fi
 
 max_updated_id=$(jq -r '.max_updated_id' <<< "$content")
 if [ $? -ne 0 ]; then
-    fail "jq was unable to read the max_updated_id from the html content"
+    fail "jq was unable to read the max_updated_id from the html content" \
             "Content: $content"
 fi
 
@@ -160,7 +161,7 @@ fi
 
 cursor=$(jq -r '.cursor | .next' <<< "$content")
 if [ $? -ne 0 ]; then
-    fail "jq was unable to read the cursor from the html content"
+    fail "jq was unable to read the cursor from the html content" \
             "Content: $content"
 fi
 
@@ -197,13 +198,13 @@ do
 
     if [ $http_code -ne 200 ]; then
         fail "Error occurred while fetching incident data from console" \
-                "HTTP Code: $http_code"
+                "HTTP Code: $http_code" \
                 "Content: $content"
     fi
 
     cursor=$(jq -r '.cursor | .next' <<< "$content")
     if [ $? -ne 0 ]; then
-        fail "jq was unable to read the cursor from the html content"
+        fail "jq was unable to read the cursor from the html content" \
                 "Content: $content"
     fi
 
