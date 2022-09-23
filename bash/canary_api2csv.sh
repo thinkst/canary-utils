@@ -15,15 +15,30 @@
 # Requires curl and jq to be in $PATH
 # sudo apt install curl jq
 
-# Configure the API authentication token and the domain hash of your console.
-# (Grab it here: https://1234abcd.canary.tools/settings where "1234abcd" is your unique console's CNAME)
-AUTH_TOKEN=deadbeef12345678
-DOMAIN_HASH=1234abcd
+# The only variable that need to be set is the AUTH_TOKEN and DOMAIN_HASH
+# They can be set as environmental variables or the the file below by
+# setting auth_token_default and domain_hash_default.
+# To fine the API auth token and domain hash go to the settings page of your console
+# (https://1234abcd.canary.tools/settings where "1234abcd" is your console's unique CNAME)
+auth_token_default=deadbeef12345678
+domain_hash_default=1234abcd
 
-# file_name=$(date "+%Y%m%d%H%M%S")-$DOMAIN_HASH-alerts.csv
+if [[ -z "${AUTH_TOKEN}" ]]; then
+    auth_token="$auth_token_default"
+else
+    auth_token="${AUTH_TOKEN}"
+fi
+
+if [[ -z "${DOMAIN_HASH}" ]]; then
+    domain_hash="${domain_hash_default}"
+else
+    domain_hash="${DOMAIN_HASH}"
+fi
+
+# file_name=$(date "+%Y%m%d%H%M%S")-$domain_hash-alerts.csv
 file_name=alerts.csv
 
-base_url="https://$DOMAIN_HASH.canary.tools"
+base_url="https://$domain_hash.canary.tools"
 page_size=500 # The number of incidents to get per page
 incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
@@ -75,7 +90,7 @@ fi
 
 # Ping the console to ensure reachability
 response=$(curl $base_url/api/v1/ping \
-            -d auth_token=$AUTH_TOKEN \
+            -d auth_token=$auth_token \
             --get --silent --show-error \
             --write-out '%{http_code}' 2>&1)
 if [ $? -ne 0 ]; then
@@ -106,7 +121,7 @@ echo "Fetching incidents from console"
 
 # Get incidents
 response=$(curl $base_url/api/v1/incidents/all \
-            -d auth_token=$AUTH_TOKEN \
+            -d auth_token=$auth_token \
             -d incidents_since=$incidents_since \
             -d limit=$page_size \
             -d shrink=true \
@@ -165,7 +180,7 @@ do
     ((counter=counter+1))
 
     response=$(curl $base_url/api/v1/incidents/all \
-                -d auth_token=$AUTH_TOKEN \
+                -d auth_token=$auth_token \
                 -d cursor=$cursor \
                 -d shrink=true \
                 --get --silent --show-error \
