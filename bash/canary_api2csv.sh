@@ -76,7 +76,7 @@ create_csv_header () {
     header+=",Target Port"
     header+=",Attacker"
     header+=",Attacker RevDNS"
-    # header+="Additional Events"
+    # header+=",Additional Events"
     echo "${header}" > $results_file_name
 }
 
