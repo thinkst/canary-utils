@@ -44,8 +44,8 @@ incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
 sort_on_column=1 # Set the column on which the csv should be sorted on update
 
-add_blank_notes_column=1 # Set to 1 to add a notes column to the csv that you can add notes too
-add_additional_event_details=1 # Set to 1 to add additional event details to the csv
+add_blank_notes_column=0 # Set to 1 to add a notes column to the csv that you can add notes too
+add_additional_event_details=0 # Set to 1 to add additional event details to the csv
 
 sort_results () {
     cp $results_file_name "$results_file_name.unsorted"
