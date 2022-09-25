@@ -44,6 +44,9 @@ incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
 sort_on_column=1 # Set the column on which the csv should be sorted on update
 
+add_blank_notes_column=1 # Set to 1 to add a notes column to the csv that you can add notes too
+add_additional_event_details=1 # Set to 1 to add additional event details to the csv
+
 sort_results () {
     cp $results_file_name "$results_file_name.unsorted"
     head -n1 "$results_file_name.unsorted" > $results_file_name # Save the header in the file
@@ -71,7 +74,13 @@ fail () {
 # To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
 create_csv_header () {
     header=""
-    # header+="Notes," # Uncomment to add header for blank notes column, remember to update sort_on_column 
+
+    if [ $add_blank_notes_column -eq 1 ]; then
+        header+="Notes,"
+        # Increment the column sorting index by one
+        sort_on_column+=1
+    fi
+
     header+="Updated ID"
     header+=",Date and Time"
     header+=",Alert Description"
@@ -79,7 +88,11 @@ create_csv_header () {
     header+=",Target Port"
     header+=",Attacker"
     header+=",Attacker RevDNS"
-    # header+=",Additional Events"
+
+    if [ $add_additional_event_details -eq 1 ]; then
+        header+=",Additional Events"
+    fi
+
     echo "${header}" > $results_file_name
 }
 
@@ -92,7 +105,10 @@ extract_incident_data () {
     description_fields+=",.dst_port"
     description_fields+=",.src_host"
     description_fields+=",.src_host_reverse"
-    # description_fields+=",(.events[] | tostring)"
+
+    if [ $add_additional_event_details -eq 1 ]; then
+        description_fields+=",(.events[] | tostring)"
+    fi
 
     data=$(jq -r ".incidents[] | [
         .updated_id,
@@ -102,7 +118,11 @@ extract_incident_data () {
         fail "jq was unable to parse html content data" \
                 "Content: $content"
     fi
-    # data=$(echo "$data" | sed 's/^/,/g') # Uncomment to add blank notes column, remember to update sort_on_column
+
+    if [ $add_blank_notes_column -eq 1 ]; then
+        data=$(echo "$data" | sed 's/^/,/g') # Uncomment to add blank notes column, remember to update sort_on_column
+    fi
+
     echo "$data"
 }
 
