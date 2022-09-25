@@ -70,7 +70,10 @@ fail () {
 
 # To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
 create_csv_header () {
-    header="Updated ID,Date and Time"
+    header=""
+    # header+="Notes," # Uncomment to add header for blank notes column, remember to update sort_on_column 
+    header+="Updated ID"
+    header+=",Date and Time"
     header+=",Alert Description"
     header+=",Target"
     header+=",Target Port"
@@ -99,6 +102,7 @@ extract_incident_data () {
         fail "jq was unable to parse html content data" \
                 "Content: $content"
     fi
+    # data=$(echo "$data" | sed 's/^/,/g') # Uncomment to add blank notes column, remember to update sort_on_column
     echo "$data"
 }
 
