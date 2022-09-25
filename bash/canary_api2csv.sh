@@ -70,12 +70,31 @@ fail () {
 
 # To change what data is processed from the incidents update the create_csv_header and extract_incident_data functions
 create_csv_header () {
-    echo "Updated ID,Datetime,Alert Description,Target,Target Port,Attacker,Attacker RevDNS" > $results_file_name
+    header="Updated ID,Date and Time"
+    header+=",Alert Description"
+    header+=",Target"
+    header+=",Target Port"
+    header+=",Attacker"
+    header+=",Attacker RevDNS"
+    # header+="Additional Events"
+    echo "${header}" > $results_file_name
 }
 
 extract_incident_data () {
     local content=$1
-    data=$(jq -r '.incidents[] | [.updated_id, .description.created_std, .description.description, .description.dst_host, .description.dst_port, .description.src_host, .description.src_host_reverse] | @csv' <<< "$content")
+
+    description_fields=".created_std"
+    description_fields+=",.description"
+    description_fields+=",.dst_host"
+    description_fields+=",.dst_port"
+    description_fields+=",.src_host"
+    description_fields+=",.src_host_reverse"
+    # description_fields+=",(.events[] | tostring)"
+
+    data=$(jq -r ".incidents[] | [
+        .updated_id,
+        (.description | ${description_fields})
+    ] | @csv" <<< "$content")
     if [ $? -ne 0 ]; then
         fail "jq was unable to parse html content data" \
                 "Content: $content"
