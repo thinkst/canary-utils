@@ -48,9 +48,9 @@ add_blank_notes_column=0 # Set to 1 to add a notes column to the csv that you ca
 add_additional_event_details=0 # Set to 1 to add additional event details to the csv
 
 sort_results () {
-    cp $results_file_name "$results_file_name.unsorted"
-    head -n1 "$results_file_name.unsorted" > $results_file_name # Save the header in the file
-    tail -n+2 "$results_file_name.unsorted" | sort -t ',' -k $sort_on_column,$sort_on_column -n >> $results_file_name # Sort the file1
+    cp "$results_file_name" "$results_file_name.unsorted"
+    head -n1 "$results_file_name.unsorted" > "$results_file_name" # Save the header in the file
+    tail -n+2 "$results_file_name.unsorted" | sort -t ',' -k $sort_on_column,$sort_on_column -n >> "$results_file_name" # Sort the file1
     rm -f "$results_file_name.unsorted"
 }
 
@@ -93,7 +93,7 @@ create_csv_header () {
         header+=",Additional Events"
     fi
 
-    echo "${header}" > $results_file_name
+    echo "${header}" > "$results_file_name"
 }
 
 extract_incident_data () {
@@ -135,8 +135,8 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Ping the console to ensure reachability
-response=$(curl $base_url/api/v1/ping \
-            -d auth_token=$auth_token \
+response=$(curl "$base_url"/api/v1/ping \
+            -d auth_token="$auth_token" \
             --get --silent --show-error \
             --write-out '%{http_code}' 2>&1)
 if [ $? -ne 0 ]; then
@@ -146,7 +146,7 @@ fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
-if [ $http_code -ne 200 ]; then
+if [ "$http_code" != "200" ]; then
     fail "Unable to ping the console" \
             "HTTP Code: $http_code" \
             "Content: $content"
@@ -155,7 +155,7 @@ fi
 # Check if we have state from the last incidents fetch
 if [ -f "$state_store_file_name" ]; then
     # We have state, so continue from last point and append to result file
-    incidents_since=`cat $state_store_file_name`
+    incidents_since=$(cat "$state_store_file_name")
     loaded_state=1
 fi
 
@@ -168,9 +168,9 @@ echo -ne "Working: ."
 # echo -ne "/\r"
 
 # Get incidents
-response=$(curl $base_url/api/v1/incidents/all \
-            -d auth_token=$auth_token \
-            -d incidents_since=$incidents_since \
+response=$(curl "$base_url"/api/v1/incidents/all \
+            -d auth_token="$auth_token" \
+            -d incidents_since="$incidents_since" \
             -d limit=$page_size \
             -d shrink=true \
             --get --silent --show-error \
@@ -182,7 +182,7 @@ fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
-if [ $http_code -ne 200 ]; then
+if [ "$http_code" != "200" ]; then
     fail "Error occurred while fetching incident data from console" \
             "HTTP Code: $http_code" \
             "Content: $content"
@@ -194,12 +194,12 @@ if [ $? -ne 0 ]; then
             "Content: $content"
 fi
 
-if [ $max_updated_id == "null" ]; then
+if [ "$max_updated_id" == "null" ]; then
     echo '' # Newline to not override status feedback
     echo "No new events found on the console"
     exit 0
 else
-    echo $max_updated_id > $state_store_file_name
+    echo "$max_updated_id" > "$state_store_file_name"
 fi
 
 cursor=$(jq -r '.cursor | .next' <<< "$content")
@@ -213,22 +213,22 @@ if [ "$data" != "" ]; then
     if [ $loaded_state -ne 1 ]; then
         create_csv_header
     fi
-    echo "$data" >> $results_file_name
+    echo "$data" >> "$results_file_name"
 fi
 
 # There is no more data to read, we can stop
-if [ $cursor == "null" ]; then
+if [ "$cursor" == "null" ]; then
     stop
 fi
 
 # While we have a pagination cursor keep loading data
-while [ cursor ]
+while [ "$cursor" != "null" ]
 do
     echo -ne "."
 
-    response=$(curl $base_url/api/v1/incidents/all \
-                -d auth_token=$auth_token \
-                -d cursor=$cursor \
+    response=$(curl "$base_url"/api/v1/incidents/all \
+                -d auth_token="$auth_token" \
+                -d cursor="$cursor" \
                 -d shrink=true \
                 --get --silent --show-error \
                 --write-out '%{http_code}')
@@ -239,7 +239,7 @@ do
     http_code=$(tail -n1 <<< "$response")  # get the last line
     content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
-    if [ $http_code -ne 200 ]; then
+    if [ "$http_code" != "200" ]; then
         fail "Error occurred while fetching incident data from console" \
                 "HTTP Code: $http_code" \
                 "Content: $content"
@@ -253,11 +253,11 @@ do
 
     data=$(extract_incident_data "$content")
     if [ "$data" != "" ]; then
-        echo "$data" >> $results_file_name
+        echo "$data" >> "$results_file_name"
     fi
 
     # There is no more data to read, we can stop
-    if [ $cursor == "null" ]; then
+    if [ "$cursor" == "null" ]; then
         stop
     fi
 done
