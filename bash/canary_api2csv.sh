@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -eu
+set -o pipefail
+
 # This script is intended to get basic alert information into a SIEM. Rather than
 # pulling full alert information, this script pulls just enough data to correlate
 # Canary and Canarytoken alerts with other events or to trigger the IR process.
@@ -114,10 +117,6 @@ extract_incident_data () {
         .updated_id,
         (.description | ${description_fields})
     ] | @csv" <<< "$content")
-    if [ $? -ne 0 ]; then
-        fail "jq was unable to parse html content data" \
-                "Content: $content"
-    fi
 
     if [ $add_blank_notes_column -eq 1 ]; then
         data=$(echo "$data" | sed 's/^/,/g') # Uncomment to add blank notes column, remember to update sort_on_column
@@ -139,10 +138,6 @@ response=$(curl "$base_url"/api/v1/ping \
             -d auth_token="$auth_token" \
             --get --silent --show-error \
             --write-out '%{http_code}' 2>&1)
-if [ $? -ne 0 ]; then
-    fail "curl encountered an error" \
-            "Response: $response"
-fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
@@ -175,10 +170,6 @@ response=$(curl "$base_url"/api/v1/incidents/all \
             -d shrink=true \
             --get --silent --show-error \
             --write-out '%{http_code}')
-if [ $? -ne 0 ]; then
-    fail "curl encountered an error" \
-            "Response: $response"
-fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
@@ -189,10 +180,6 @@ if [ "$http_code" != "200" ]; then
 fi
 
 max_updated_id=$(jq -r '.max_updated_id' <<< "$content")
-if [ $? -ne 0 ]; then
-    fail "jq was unable to read the max_updated_id from the html content" \
-            "Content: $content"
-fi
 
 if [ "$max_updated_id" == "null" ]; then
     echo '' # Newline to not override status feedback
@@ -203,10 +190,6 @@ else
 fi
 
 cursor=$(jq -r '.cursor | .next' <<< "$content")
-if [ $? -ne 0 ]; then
-    fail "jq was unable to read the cursor from the html content" \
-            "Content: $content"
-fi
 
 data=$(extract_incident_data "$content")
 if [ "$data" != "" ]; then
@@ -232,10 +215,6 @@ do
                 -d shrink=true \
                 --get --silent --show-error \
                 --write-out '%{http_code}')
-    if [ $? -ne 0 ]; then
-        fail "curl encountered an error" \
-                "Response: $response"
-    fi
     http_code=$(tail -n1 <<< "$response")  # get the last line
     content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
@@ -246,11 +225,6 @@ do
     fi
 
     cursor=$(jq -r '.cursor | .next' <<< "$content")
-    if [ $? -ne 0 ]; then
-        fail "jq was unable to read the cursor from the html content" \
-                "Content: $content"
-    fi
-
     data=$(extract_incident_data "$content")
     if [ "$data" != "" ]; then
         echo "$data" >> "$results_file_name"
