@@ -46,6 +46,9 @@ token_folders=('Acronis' 'Github' 'Zoho' 'Confluence' 'Hubspot' 'Okta' 'Gitlab' 
 token_sub_folders=('Temp' 'Backup' 'Archive' 'Secrets')
 token_filenames=('Emergency.docx' 'Credentials.docx' 'Access.docx' 'Accounts.docx')
 
+##
+## Tokenstacker script
+##
 
 random_item () {
     local array=("$@")
