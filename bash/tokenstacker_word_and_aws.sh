@@ -195,15 +195,14 @@ target_file="$token_folder/tmp/word/document.xml"
 sed -i.bak "s/$aws_token_placeholder_id/$token_aws_access_key_id/g" "$target_file" && rm "$target_file.bak"
 sed -i.bak "s/$aws_token_placeholder_key/$token_aws_secret_access_key/g" "$target_file" && rm "$target_file.bak"
 
-# tar -czf "$token_path.2.docx" -C "$token_folder/tmp" .
-pushd "$token_folder/tmp"
-zip -r "$token_path" ./*
-popd
+# Zip up the word doc again
+pushd "$token_folder/tmp" > /dev/null
+zip -q -r "$token_path" ./*
+popd > /dev/null
 
 rm -r "$token_folder/tmp"
 
 # Randomise Token metadata.
-
 current_epoch=$(date +%s)
 max_old_epoch=$(($current_epoch - 31536000))
 modified_timestamp=$(awk -v min=$max_old_epoch -v max=$current_epoch 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
