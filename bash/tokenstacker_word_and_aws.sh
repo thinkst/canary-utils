@@ -191,9 +191,10 @@ echo "Embed AWS token in Word token"
 mkdir -p "$token_folder/tmp"
 tar -xf "$token_path" -C "$token_folder/tmp"
 
+# Replace the AWS token place holders in the word doc
 target_file="$token_folder/tmp/word/document.xml"
-sed -i.bak "s/$aws_token_placeholder_id/$token_aws_access_key_id/g" "$target_file" && rm "$target_file.bak"
-sed -i.bak "s/$aws_token_placeholder_key/$token_aws_secret_access_key/g" "$target_file" && rm "$target_file.bak"
+sed -i.bak "s|${aws_token_placeholder_id}|${token_aws_access_key_id}|g" "$target_file" && rm "$target_file.bak"
+sed -i.bak "s|${aws_token_placeholder_key}|${token_aws_secret_access_key}|g" "$target_file" && rm "$target_file.bak"
 
 # Zip up the word doc again
 pushd "$token_folder/tmp" > /dev/null
