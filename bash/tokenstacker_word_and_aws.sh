@@ -50,10 +50,17 @@ token_filenames=('Emergency.docx' 'Credentials.docx' 'Access.docx' 'Accounts.doc
 ## Tokenstacker script
 ##
 
-random_item () {
+random_between_numbers () {
+    local min_value=$1
+    local max_value=$2
+    awk -v min="$min_value" -v max="$max_value" -v seed=$RANDOM 'BEGIN{srand(seed); print int(min+rand()*(max-min+1))}'
+}
+
+random_item_from_array () {
     local array=("$@")
 
-    index=$(($RANDOM % ${#array[@]}))
+    array_length=$((${#array[@]} - 1 ))
+    index=modified_timestamp=$(random_between_numbers 0 "$array_length")
     echo "${array[$index]}"
 }
 
@@ -77,9 +84,9 @@ fi
 
 # Prepare variables
 base_url="https://$domain_hash.canary.tools"
-random_token_folder=$(random_item "${token_folders[@]}")
-random_token_sub_folder=$(random_item "${token_sub_folders[@]}")
-random_token_filename=$(random_item "${token_filenames[@]}")
+random_token_folder=$(random_item_from_array "${token_folders[@]}")
+random_token_sub_folder=$(random_item_from_array "${token_sub_folders[@]}")
+random_token_filename=$(random_item_from_array "${token_filenames[@]}")
 token_folder="$HOME/$random_token_folder/$random_token_sub_folder"
 token_path="$token_folder/$random_token_filename"
 echo "Creating token: $token_path"
@@ -208,15 +215,15 @@ rm -r "$token_folder/tmp"
 
 # Randomise Token metadata.
 current_epoch=$(date +%s)
-max_old_epoch=$(($current_epoch - 31536000))
-modified_timestamp=$(awk -v min=$max_old_epoch -v max=$current_epoch 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+max_old_epoch=$(("$current_epoch" - 31536000))
+modified_timestamp=$(random_between_numbers "$current_epoch" "$max_old_epoch")
 
 case $(uname | tr '[:upper:]' '[:lower:]') in
     linux*)
-        formatted_timestamp=$(date -d @$modified_timestamp +%Y%m%d%H%M.%S)
+        formatted_timestamp=$(date -d @"$modified_timestamp" +%Y%m%d%H%M.%S)
         ;;
     darwin*)
-        formatted_timestamp=$(date -r $modified_timestamp +%Y%m%d%H%M.%S)
+        formatted_timestamp=$(date -r "$modified_timestamp" +%Y%m%d%H%M.%S)
         ;;
     *)
         echo "Unexpected OS; Skip setting the time stamp of the token"
