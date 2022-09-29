@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eu
 set -o pipefail
@@ -89,6 +89,7 @@ random_token_sub_folder=$(random_item_from_array "${token_sub_folders[@]}")
 random_token_filename=$(random_item_from_array "${token_filenames[@]}")
 token_folder="$HOME/$random_token_folder/$random_token_sub_folder"
 token_path="$token_folder/$random_token_filename"
+
 echo "Creating token: $token_path"
 
 # Ensure the target directory exists
@@ -153,7 +154,7 @@ http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
 if [ "$http_code" != "200" ]; then
-    fail "Failed to the Word template" \
+    fail "Failed to fetch the Word template" \
             "HTTP Code: $http_code" \
             "Content: $content"
 fi
