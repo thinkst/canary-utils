@@ -1,154 +1,211 @@
-import socket
-import zipfile
-import requests
+#!/usr/bin/env python3
+"""
+Tokenstacker - Word and AWS
+This script will download a Word Template from a private github repo,
+Token it, then embed an AWS API Token inside and save it to a realistic directory.
+For example: ~/Gitlab/Secrets/Credentials.docx
+Contact support@canary.tools for assistance.
+"""
+
 import os
 import shutil
 import time
 import random
 import re
+import socket
+import zipfile
+import requests
 
-# Tokenstacker - Word and AWS.py
+##
+## Customize these variables to match the environment
+##
 
-# This script will download a Word Template from a private github repo, Token it, then embed an AWS API Token inside and save it to a realistic directory.
-# Edit the variables in lines 16 - 22 to match your deployment.
-# Contact support@canary.tools for assistance.
+# Enter your Console domain hash between the quotes. e.g. 1234abc.canary.tools
+# where "1234abcd" is your console's unique CNAME
+DOMAIN_HASH = "1234abc"
 
-Domain = 'ABC123.canary.tools' # Enter your Console domain between the quotes. e.g. 1234abc.canary.tools
-FactoryAuth = 'ABC123' # Enter your Factory auth key. e.g a1bc3e769fg832hij3 https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-FlockID = 'flock:default' # Enter the desired flock to place tokens in. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
-WordTemplate = 'https://api.github.com/repos/repo_owner/private_repo_name/contents/sample.docx' # URL of your template, Private Repo's should follow the format of https://api.github.com/repos/repo_owner/private_repo_name/contents/sample.docx, public files can be referenced by https://github.com/owner/repo/raw/main/template.docx
-AWSToken_Placeholder_id = 'AWS_ACCESS_KEY_ID' # The text within the word template that will be replaced with an AWS Token ID.
-AWSToken_Placeholder_key = 'AWS_SECRET_ACCESS_KEY' # The text within the word template that will be replaced with an AWS Token Key.
-Personal_Access_Token = 'gh_abcdefghijklmnop123' # Personal access token generated on Github, if blank the template will be generically downloaded. https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+# Enter your Factory auth key. e.g a1bc3e769fg832hij3
+# https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+FACTORY_AUTH = "a1bc3e769fg832hij3"
+
+# Enter the desired flock to place tokens in.
+# https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+FLOCK_ID = "flock:default"
+
+# URL of your template, Private Repo's should follow the format of
+# https://api.github.com/repos/repo_owner/private_repo_name/contents/sample.docx,
+# public files can be referenced by https://github.com/owner/repo/raw/main/template.docx
+WORD_TEMPLATE_URL = "https://api.github.com/repos/repo_owner/private_repo_name/contents/sample.docx"
+
+# Personal access token generated on Github,
+# if blank the template will downloaded using public channels.
+# https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+GITHUB_PERSONAL_ACCESS_TOKEN = "gh_abcdefghijklmnop123"
+
+# The text within the word template that will be replaced with an AWS Token ID.
+AWS_TOKEN_PLACEHOLDER_ID = "AWS_ACCESS_KEY_ID"
+
+# The text within the word template that will be replaced with an AWS Token Key.
+AWS_TOKEN_PLACEHOLDER_KEY = "AWS_SECRET_ACCESS_KEY"
 
 # Randomise the Token deployment path, this list can edited to your preferences.
+TOKEN_FOLDERS = ['Acronis', 'Github', 'Zoho', 'Confluence', 'Hubspot', 'Okta', 'Gitlab', 'Postman', 'Veeam', 'Redstore']
+TOKEN_SUB_FOLDERS = ['Temp','Backup', 'Archive', 'Secrets']
+TOKEN_FILENAMES = ['Emergency.docx', 'Credentials.docx', 'Access.docx', 'Accounts.docx']
 
-TokenFolder_list = ['Acronis','Github','Zoho', 'Confluence', 'Hubspot', 'Okta', 'Gitlab', 'Postman', 'Veeam', 'Redstore']
-TokenSubFolder_list = ['Temp','Backup', 'Archive', 'Secrets', ]
-TokenFilename_list = ['Emergency.docx', 'Credentials.docx', 'Access.docx', 'Accounts.docx']
+##
+## Tokenstacker script
+##
 
-TokenFolder_selection = random.choice(TokenFolder_list) 
-TokenSubFolder_selection = random.choice(TokenSubFolder_list)
-TokenFilename_selection = random.choice(TokenFilename_list)
+# Prepare variables
+base_url = f"https://{DOMAIN_HASH}.canary.tools"
+random_token_folder = random.choice(TOKEN_FOLDERS)
+random_token_sub_folder = random.choice(TOKEN_SUB_FOLDERS)
+random_token_filename = random.choice(TOKEN_FILENAMES)
+token_folder = os.path.join(os.path.expanduser('~'), random_token_folder, random_token_sub_folder)
+token_path = os.path.join(token_folder, random_token_filename)
+hostname = socket.gethostname()
 
-TokenPath = os.path.join(os.path.expanduser('~'), TokenFolder_selection, TokenSubFolder_selection, TokenFilename_selection)
-TokenFilename = os.path.split(TokenPath)[1]
+print(f"Creating token: {token_path}")
 
-if not os.path.exists(TokenPath):
-    os.makedirs(os.path.split(TokenPath)[0])
+# Ensure the target directory exists
+if not os.path.exists(token_folder):
+    os.makedirs(token_folder)
 
-#Create AWS Token on Canary Console
-CreateToken_AWS_payload = {
-'factory_auth': FactoryAuth,
-'kind': 'aws-id',
-'flock_id' : FlockID,
-'memo': socket.gethostname()+' - Embedded AWS Token in '+ TokenPath,
+# Create AWS Token on Canary Console
+print("Creating AWS token")
+request_parameters = {
+    'factory_auth': FACTORY_AUTH,
+    'kind': 'aws-id',
+    'flock_id' : FLOCK_ID,
+    'memo': f"{hostname} - Embedded AWS Token in {token_path}",
 }
 
-Create_Token_AWS_request = requests.post('https://'+Domain+'/api/v1/canarytoken/factory/create', data=CreateToken_AWS_payload)
-Create_Token_AWS_result = Create_Token_AWS_request.json()
+response = requests.post(
+    f"{base_url}/api/v1/canarytoken/factory/create",
+    data=request_parameters,
+    timeout=30
+)
+response.raise_for_status()
+response_json = response.json()
 
-AWS_TokenID = Create_Token_AWS_result['canarytoken']['canarytoken']
+aws_token_id = response_json['canarytoken']['canarytoken']
 
-Fetch_Token_AWS_payload = {
-'factory_auth': FactoryAuth,
-'canarytoken': AWS_TokenID
+# Fetch the token payload
+request_parameters = {
+    'factory_auth': FACTORY_AUTH,
+    'canarytoken': aws_token_id
 }
 
-Fetch_Token_AWS_request = requests.get('https://'+Domain+'/api/v1/canarytoken/factory/download', allow_redirects=True, params=Fetch_Token_AWS_payload)
+response = requests.get(
+    f"{base_url}/api/v1/canarytoken/factory/download",
+    allow_redirects=True,
+    params=request_parameters,
+    timeout=30
+)
 
-AWSToken_id = re.findall('(?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9])', Fetch_Token_AWS_request.content.decode())
-AWSToken_key = re.findall('([a-zA-Z0-9+/]{40})', Fetch_Token_AWS_request.content.decode())
-AWSToken_id = ''.join(AWSToken_id)
-AWSToken_key = ''.join(AWSToken_key)
+response.raise_for_status()
+response_content = response.content.decode()
 
-#Fetch Word Template.
+token_aws_access_key_id = re.findall('aws_access_key_id=(.*)', response_content)[0]
+token_aws_secret_access_key = re.findall('aws_secret_access_key=(.*)', response_content)[0]
 
-Fetch_WordTemplate_payload = {
-'Authorization': 'token '+Personal_Access_Token,
-'Accept': 'application/vnd.github.v3.raw'
-}
-
-if Personal_Access_Token != '':
+# Fetch Word Template.
+if GITHUB_PERSONAL_ACCESS_TOKEN != '':
     print('Fetching Template with Github Access Token')
-    Fetch_WordTemplate_request = requests.get(WordTemplate, headers=Fetch_WordTemplate_payload)
+    request_parameters = {
+        'Authorization': f"token {GITHUB_PERSONAL_ACCESS_TOKEN}",
+        'Accept': 'application/vnd.github.v3.raw'
+    }
+    response = requests.get(
+        WORD_TEMPLATE_URL,
+        headers=request_parameters,
+        timeout=30
+    )
 else:
-    print('Fetching Template generically')
-    Fetch_WordTemplate_request = requests.get(WordTemplate) 
+    print('Fetching Template using Github public channel')
+    response = requests.get(
+        WORD_TEMPLATE_URL,
+        timeout=30
+    )
 
-if Fetch_WordTemplate_request.status_code != requests.codes.ok:
-    print('[!] Could not fetch Word template.')
-    exit()
-else:
-    open(TokenPath, 'wb').write(Fetch_WordTemplate_request.content)
+response.raise_for_status()
+
+with open(token_path, 'wb') as f:
+    f.write(response.content)
 
 # Upload template to Canary Console for Tokening
-
-Create_Token_Word_payload = {
-'factory_auth': FactoryAuth,
-'flock_id' : FlockID,
-'kind': 'doc-msword',
-'memo': socket.gethostname()+' - '+TokenPath,
+print("Creating Word token")
+request_parameters = {
+    'factory_auth': FACTORY_AUTH,
+    'kind': 'doc-msword',
+    'flock_id' : FLOCK_ID,
+    'memo': f"{hostname} - {token_path}",
+}
+request_files = {
+    'doc': (token_path, open(token_path, 'rb'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 }
 
-Create_Token_Word_files = {
-'doc': (TokenPath, open(TokenPath, 'rb'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+response = requests.post(
+    f"{base_url}/api/v1/canarytoken/factory/create",
+    data=request_parameters,
+    files=request_files,
+    timeout=30
+)
+response.raise_for_status()
+response_json = response.json()
+
+word_token_id = response_json['canarytoken']['canarytoken']
+
+# Fetch the word token
+request_parameters = {
+    'factory_auth': FACTORY_AUTH,
+    'canarytoken': word_token_id
 }
 
-Create_Token_Word_request = requests.post('https://'+Domain+'/api/v1/canarytoken/factory/create', data=Create_Token_Word_payload, files=Create_Token_Word_files)
+response = requests.get(
+    f"{base_url}/api/v1/canarytoken/factory/download",
+    allow_redirects=True,
+    params=request_parameters,
+    timeout=30
+)
 
-if Create_Token_Word_request.status_code != requests.codes.ok:
-    print('[!] Creation of Word Token failed.')
-    exit()
-else:
-    Create_Token_Word_result = Create_Token_Word_request.json()
+response.raise_for_status()
 
-Word_TokenID = Create_Token_Word_result['canarytoken']['canarytoken']
-
-# Replace template with Tokened version locally.
-Fetch_Token_Word_payload = {
-    'factory_auth': FactoryAuth,
-    'canarytoken': Word_TokenID
-}
-
-Fetch_Token_Word_request = requests.get('https://'+Domain+'/api/v1/canarytoken/factory/download', allow_redirects=True, params=Fetch_Token_Word_payload)
-
-if Fetch_Token_Word_request.status_code != requests.codes.ok:
-    print('[!] Fetching of Word Token failed.')
-    exit()
-
-open(TokenPath, 'wb').write(Fetch_Token_Word_request.content)
+with open(token_path, 'wb') as f:
+    f.write(response.content)
 
 # Unzip Word doc to insert AWS Token and rebuild.
+print("Embed AWS token in Word token")
+tmp_folder = os.path.join(token_folder, 'tmp')
 
-with zipfile.ZipFile(TokenPath, 'r') as zip_ref:
-    zip_ref.extractall(os.path.join(os.path.split(TokenPath)[0], 'temp'))
+with zipfile.ZipFile(token_path, 'r') as zip_ref:
+    zip_ref.extractall(tmp_folder)
 
-with open(os.path.join(os.path.split(TokenPath)[0], 'temp', 'word', 'document.xml'), 'r') as file :
-    filedata = file.read()
-    replace_id = filedata.replace(AWSToken_Placeholder_id,AWSToken_id)
-    replace_key = replace_id.replace(AWSToken_Placeholder_key,AWSToken_key)
-    
-with open(os.path.join(os.path.split(TokenPath)[0], 'temp', 'word', 'document.xml'), 'w') as file :
-    file.write(replace_key)
-    file.close()
+with open(os.path.join(tmp_folder, 'word', 'document.xml'), 'r', encoding='utf-8') as f:
+    filedata = f.read()
+    filedata1 = filedata.replace(AWS_TOKEN_PLACEHOLDER_ID, token_aws_access_key_id)
+    filedata2 = filedata1.replace(AWS_TOKEN_PLACEHOLDER_KEY, token_aws_secret_access_key)
 
-with zipfile.ZipFile(TokenPath, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
-    for folder_name, subfolders, filenames in os.walk(os.path.join(os.path.split(TokenPath)[0], 'temp/')):
+with open(os.path.join(tmp_folder, 'word', 'document.xml'), 'w', encoding='utf-8') as f:
+    f.write(filedata2)
+    f.close()
+
+with zipfile.ZipFile(token_path, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
+    for folder_name, subfolders, filenames in os.walk(tmp_folder):
         for filename in filenames:
             file_path = os.path.join(folder_name, filename)
-            zip_ref.write(file_path, arcname=os.path.relpath(file_path, os.path.join(os.path.split(TokenPath)[0], 'temp/')))
+            zip_ref.write(file_path, arcname=os.path.relpath(file_path, tmp_folder))
 
-shutil.rmtree(os.path.join(os.path.split(TokenPath)[0], 'temp/'))
+shutil.rmtree(tmp_folder)
 
-#Randomise Token metadata.
-
+# Randomise Token metadata.
 Current_epoch = int(time.time())
 Max_old_epoch = Current_epoch - 31536000
 Modified_timestamp = random.randint(Max_old_epoch, Current_epoch)
 
-os.utime(os.path.join(os.path.expanduser('~'), TokenFolder_selection), (Modified_timestamp, Modified_timestamp))
-os.utime(os.path.join(os.path.expanduser('~'), TokenFolder_selection, TokenSubFolder_selection), (Modified_timestamp, Modified_timestamp))
-os.utime(TokenPath, (Modified_timestamp, Modified_timestamp))
+os.utime(os.path.join(os.path.expanduser('~'), random_token_folder), (Modified_timestamp, Modified_timestamp))
+os.utime(os.path.join(os.path.expanduser('~'), random_token_folder, random_token_sub_folder), (Modified_timestamp, Modified_timestamp))
+os.utime(token_path, (Modified_timestamp, Modified_timestamp))
 
-print('[*]Token successfully saved to : '+TokenPath)
+print(f"Token successfully saved to {token_path}")
