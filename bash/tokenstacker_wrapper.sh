@@ -160,7 +160,4 @@ if ! "$venv_directory/bin/python3" "$python_script_path"; then
     exit 1
 fi
 
-echo "Cleaning up temporary python virtual environment"
-rm -rf "$work_directory"
-
 echo "Tokening complete"
