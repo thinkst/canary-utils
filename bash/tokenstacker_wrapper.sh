@@ -14,7 +14,7 @@ set -o pipefail
 # Using this script to overcome some of the limitations such as certain
 # binaries not being installed and to have a contained tokening environment.
 
-# Set default PATH if not present
+# Set PATH to a sane default (helps for scripts run via crowdstrike)
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 ##
@@ -68,15 +68,27 @@ target_folder=""
 # public files can be referenced by https://github.com/owner/repo/raw/main/tokenstacker_word_and_aws.py
 python_tokenstacker_script_url="https://github.com/thinkst/canary-utils/raw/master/python/tokenstacker_word_and_aws.py"
 
-current_working_directory=$(pwd)
-work_directory="$current_working_directory/tmp_token_work_dir"
-venv_directory="$work_directory/venv"
-python_script_path="$work_directory/tokenstacker_word_and_aws.py"
-
-
 ##
 ## Tokenstacker wrapper script
 ##
+
+# Prepare a temporary working directory
+work_directory=$(mktemp -d)
+
+# check if tmp dir was created
+if [[ ! "$work_directory" || ! -d "$work_directory" ]]; then
+    echo "Could not create temp dir"
+    exit 1
+fi
+
+# deletes the temp directory
+clean_up () {
+    rm -rf "$work_directory"
+    echo "Deleted temp working directory $work_directory"
+}
+
+# register the clean_up function to be called on the EXIT signal
+trap clean_up EXIT
 
 replace_variable () {
     local variable_name=$1
@@ -85,10 +97,8 @@ replace_variable () {
     sed -i.bak "s|^$variable_name = .*|$variable_name = ${variable_value}|g" "$target_file" && rm "$target_file.bak"
 }
 
-# Ensure the work directory exists
-mkdir -p "$work_directory"
-
 # Fetch Python token stacker
+python_script_path="$work_directory/tokenstacker_word_and_aws.py"
 if [ "$github_personal_access_token" != "" ]; then
     echo "Fetching tokenstacker script with Github Access Token"
     response=$(curl "$python_tokenstacker_script_url" \
@@ -134,6 +144,7 @@ replace_variable "TARGET_FOLDER" "\"${target_folder}\"" "$python_script_path"
 # run the python token script
 echo "Running tokenstacker script"
 
+venv_directory="$work_directory/venv"
 if ! /usr/bin/env python3 -m venv "$venv_directory"; then
     echo "Failed to create python virtual environment"
     exit 1
