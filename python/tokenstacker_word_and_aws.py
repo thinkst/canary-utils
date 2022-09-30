@@ -53,16 +53,23 @@ TOKEN_FOLDERS = ['Acronis', 'Github', 'Zoho', 'Confluence', 'Hubspot', 'Okta', '
 TOKEN_SUB_FOLDERS = ['Temp','Backup', 'Archive', 'Secrets']
 TOKEN_FILENAMES = ['Emergency.docx', 'Credentials.docx', 'Access.docx', 'Accounts.docx']
 
+# The TARGET_FOLDER is absolute path to the folder that is targeted for tokening
+# Defaults to the home folder of the user running the script if it is unset
+TARGET_FOLDER = ""
+
 ##
 ## Tokenstacker script
 ##
 
 # Prepare variables
+if TARGET_FOLDER == "":
+    TARGET_FOLDER = os.path.expanduser('~')
+
 base_url = f"https://{DOMAIN_HASH}.canary.tools"
 random_token_folder = random.choice(TOKEN_FOLDERS)
 random_token_sub_folder = random.choice(TOKEN_SUB_FOLDERS)
 random_token_filename = random.choice(TOKEN_FILENAMES)
-token_folder = os.path.join(os.path.expanduser('~'), random_token_folder, random_token_sub_folder)
+token_folder = os.path.join(TARGET_FOLDER, random_token_folder, random_token_sub_folder)
 token_path = os.path.join(token_folder, random_token_filename)
 hostname = socket.gethostname()
 
@@ -177,7 +184,7 @@ with open(token_path, 'wb') as f:
 
 # Unzip Word doc to insert AWS Token and rebuild.
 print("Embed AWS token in Word token")
-tmp_folder = os.path.join(token_folder, 'tmp')
+tmp_folder = os.path.join(token_folder, 'tmp_token_work_dir')
 
 with zipfile.ZipFile(token_path, 'r') as zip_ref:
     zip_ref.extractall(tmp_folder)
@@ -204,8 +211,8 @@ Current_epoch = int(time.time())
 Max_old_epoch = Current_epoch - 31536000
 Modified_timestamp = random.randint(Max_old_epoch, Current_epoch)
 
-os.utime(os.path.join(os.path.expanduser('~'), random_token_folder), (Modified_timestamp, Modified_timestamp))
-os.utime(os.path.join(os.path.expanduser('~'), random_token_folder, random_token_sub_folder), (Modified_timestamp, Modified_timestamp))
+os.utime(os.path.join(TARGET_FOLDER, random_token_folder), (Modified_timestamp, Modified_timestamp))
+os.utime(os.path.join(TARGET_FOLDER, random_token_folder, random_token_sub_folder), (Modified_timestamp, Modified_timestamp))
 os.utime(token_path, (Modified_timestamp, Modified_timestamp))
 
 print(f"Token successfully saved to {token_path}")

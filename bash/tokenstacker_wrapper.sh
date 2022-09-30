@@ -14,6 +14,11 @@ set -o pipefail
 # Using this script to overcome some of the limitations such as certain
 # binaries not being installed and to have a contained tokening environment.
 
+# Set default PATH if not present
+if [[ -z "${PATH}" ]]; then
+    export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+fi
+
 ##
 ## Customize these variables to match the environment, they will be used to update the python script
 ##
@@ -52,6 +57,10 @@ token_folders="['Acronis', 'Github', 'Zoho', 'Confluence', 'Hubspot', 'Okta', 'G
 token_sub_folders="['Temp','Backup', 'Archive', 'Secrets']"
 token_filenames="['Emergency.docx', 'Credentials.docx', 'Access.docx', 'Accounts.docx']"
 
+# The target_folder is absolute path to the folder that is targeted for tokening
+# Defaults to the home folder of the user running the script if it is unset
+target_folder=""
+
 ##
 ## Variables for this wrapper script
 ##
@@ -62,7 +71,7 @@ token_filenames="['Emergency.docx', 'Credentials.docx', 'Access.docx', 'Accounts
 python_tokenstacker_script_url="https://github.com/thinkst/canary-utils/raw/master/python/tokenstacker_word_and_aws.py"
 
 current_working_directory=$(pwd)
-work_directory="$current_working_directory/tmp"
+work_directory="$current_working_directory/tmp_token_work_dir"
 venv_directory="$work_directory/venv"
 python_script_path="$work_directory/tokenstacker_word_and_aws.py"
 
@@ -70,6 +79,13 @@ python_script_path="$work_directory/tokenstacker_word_and_aws.py"
 ##
 ## Tokenstacker wrapper script
 ##
+
+replace_variable () {
+    local variable_name=$1
+    local variable_value=$2
+    local target_file=$3
+    sed -i.bak "s|^$variable_name = .*|$variable_name = ${variable_value}|g" "$target_file" && rm "$target_file.bak"
+}
 
 # Ensure the work directory exists
 mkdir -p "$work_directory"
@@ -101,19 +117,21 @@ fi
 
 # prepare the python token script
 echo "Updating variables in tokenstacker script"
-sed -i.bak "s|DOMAIN_HASH = .*|DOMAIN_HASH = \"${domain_hash}\"|g" "$python_script_path" && rm "$python_script_path.bak"
-sed -i.bak "s|FACTORY_AUTH = .*|FACTORY_AUTH = \"${factory_auth}\"|g" "$python_script_path" && rm "$python_script_path.bak"
-sed -i.bak "s|FLOCK_ID = .*|FLOCK_ID = \"${flock_id}\"|g" "$python_script_path" && rm "$python_script_path.bak"
-sed -i.bak "s|WORD_TEMPLATE_URL = .*|WORD_TEMPLATE_URL = \"${word_template_url}\"|g" "$python_script_path" && rm "$python_script_path.bak"
+replace_variable "DOMAIN_HASH" "\"${domain_hash}\"" "$python_script_path"
+replace_variable "FACTORY_AUTH" "\"${factory_auth}\"" "$python_script_path"
+replace_variable "FLOCK_ID" "\"${flock_id}\"" "$python_script_path"
+replace_variable "WORD_TEMPLATE_URL" "\"${word_template_url}\"" "$python_script_path"
 
-sed -i.bak "s|GITHUB_PERSONAL_ACCESS_TOKEN = .*|GITHUB_PERSONAL_ACCESS_TOKEN = \"${github_personal_access_token}\"|g" "$python_script_path" && rm "$python_script_path.bak"
+replace_variable "GITHUB_PERSONAL_ACCESS_TOKEN" "\"${github_personal_access_token}\"" "$python_script_path"
 
-sed -i.bak "s|AWS_TOKEN_PLACEHOLDER_ID = .*|AWS_TOKEN_PLACEHOLDER_ID = \"${aws_token_placeholder_id}\"|g" "$python_script_path" && rm "$python_script_path.bak"
-sed -i.bak "s|AWS_TOKEN_PLACEHOLDER_KEY = .*|AWS_TOKEN_PLACEHOLDER_KEY = \"${aws_token_placeholder_key}\"|g" "$python_script_path" && rm "$python_script_path.bak"
+replace_variable "AWS_TOKEN_PLACEHOLDER_ID" "\"${aws_token_placeholder_id}\"" "$python_script_path"
+replace_variable "AWS_TOKEN_PLACEHOLDER_KEY" "\"${aws_token_placeholder_key}\"" "$python_script_path"
 
-sed -i.bak "s|TokenFolder_list = .*|TokenFolder_list = ${token_folders}|g" "$python_script_path" && rm "$python_script_path.bak"
-sed -i.bak "s|TokenSubFolder_list = .*|TokenSubFolder_list = ${token_sub_folders}|g" "$python_script_path" && rm "$python_script_path.bak"
-sed -i.bak "s|TokenFilename_list = .*|TokenFilename_list = ${token_filenames}|g" "$python_script_path" && rm "$python_script_path.bak"
+replace_variable "TOKEN_FOLDERS" "${token_folders}" "$python_script_path"
+replace_variable "TOKEN_SUB_FOLDERS" "${token_sub_folders}" "$python_script_path"
+replace_variable "TOKEN_FILENAMES" "${token_filenames}" "$python_script_path"
+
+replace_variable "TARGET_FOLDER" "\"${target_folder}\"" "$python_script_path"
 
 # run the python token script
 echo "Running tokenstacker script"
