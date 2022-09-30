@@ -15,9 +15,7 @@ set -o pipefail
 # binaries not being installed and to have a contained tokening environment.
 
 # Set default PATH if not present
-if [[ -z "${PATH}" ]]; then
-    export PATH=/usr/sbin:/usr/bin:/sbin:/bin
-fi
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 ##
 ## Customize these variables to match the environment, they will be used to update the python script
