@@ -98,6 +98,24 @@ random_token_filename=$(random_item_from_array "${token_filenames[@]}")
 token_folder="$target_folder/$random_token_folder/$random_token_sub_folder"
 token_path="$token_folder/$random_token_filename"
 
+# Prepare a temporary working directory
+work_directory=$(mktemp -d)
+
+# check if tmp dir was created
+if [[ ! "$work_directory" || ! -d "$work_directory" ]]; then
+    echo "Could not create temp dir"
+    exit 1
+fi
+
+# deletes the temp directory
+clean_up () {
+    rm -rf "$work_directory"
+    echo "Deleted temp working directory $work_directory"
+}
+
+# register the clean_up function to be called on the EXIT signal
+trap clean_up EXIT
+
 echo "Creating token: $token_path"
 
 # Ensure the target directory exists
@@ -207,20 +225,17 @@ fi
 
 # Unzip Word doc to insert AWS Token and rebuild.
 echo "Embed AWS token in Word token"
-mkdir -p "$token_folder/tmp_token_work_dir"
-tar -xf "$token_path" -C "$token_folder/tmp_token_work_dir"
+tar -xf "$token_path" -C "$work_directory"
 
 # Replace the AWS token place holders in the word doc
-target_file="$token_folder/tmp_token_work_dir/word/document.xml"
+target_file="$work_directory/word/document.xml"
 sed -i.bak "s|${aws_token_placeholder_id}|${token_aws_access_key_id}|g" "$target_file" && rm "$target_file.bak"
 sed -i.bak "s|${aws_token_placeholder_key}|${token_aws_secret_access_key}|g" "$target_file" && rm "$target_file.bak"
 
 # Zip up the word doc again
-pushd "$token_folder/tmp_token_work_dir" > /dev/null
+pushd "$work_directory" > /dev/null
 zip -q -r "$token_path" ./*
 popd > /dev/null
-
-rm -r "$token_folder/tmp_token_work_dir"
 
 # Randomise Token metadata.
 current_epoch=$(date +%s)
