@@ -211,6 +211,10 @@ Current_epoch = int(time.time())
 Max_old_epoch = Current_epoch - 31536000
 Modified_timestamp = random.randint(Max_old_epoch, Current_epoch)
 
+os.chmod(os.path.join(TARGET_FOLDER, random_token_folder), 774)
+os.chmod(os.path.join(TARGET_FOLDER, random_token_folder, random_token_sub_folder), 774)
+os.chmod(token_path, 774)
+
 os.utime(os.path.join(TARGET_FOLDER, random_token_folder), (Modified_timestamp, Modified_timestamp))
 os.utime(os.path.join(TARGET_FOLDER, random_token_folder, random_token_sub_folder), (Modified_timestamp, Modified_timestamp))
 os.utime(token_path, (Modified_timestamp, Modified_timestamp))
