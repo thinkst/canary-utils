@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -eu
 set -o pipefail
@@ -46,6 +46,10 @@ token_folders=('Acronis' 'Github' 'Zoho' 'Confluence' 'Hubspot' 'Okta' 'Gitlab' 
 token_sub_folders=('Temp' 'Backup' 'Archive' 'Secrets')
 token_filenames=('Emergency.docx' 'Credentials.docx' 'Access.docx' 'Accounts.docx')
 
+# The target_folder is absolute path to the folder that is targeted for tokening
+# Defaults to the home folder of the user running the script if it is unset
+target_folder=""
+
 ##
 ## Tokenstacker script
 ##
@@ -83,12 +87,35 @@ if ! command -v zip &> /dev/null; then
 fi
 
 # Prepare variables
+if [ $target_folder == "" ]; then
+    target_folder=$HOME
+fi
+
 base_url="https://$domain_hash.canary.tools"
 random_token_folder=$(random_item_from_array "${token_folders[@]}")
 random_token_sub_folder=$(random_item_from_array "${token_sub_folders[@]}")
 random_token_filename=$(random_item_from_array "${token_filenames[@]}")
-token_folder="$HOME/$random_token_folder/$random_token_sub_folder"
+token_folder="$target_folder/$random_token_folder/$random_token_sub_folder"
 token_path="$token_folder/$random_token_filename"
+
+# Prepare a temporary working directory
+work_directory=$(mktemp -d)
+
+# check if tmp dir was created
+if [[ ! "$work_directory" || ! -d "$work_directory" ]]; then
+    echo "Could not create temp dir"
+    exit 1
+fi
+
+# deletes the temp directory
+clean_up () {
+    rm -rf "$work_directory"
+    echo "Deleted temp working directory $work_directory"
+}
+
+# register the clean_up function to be called on the EXIT signal
+trap clean_up EXIT
+
 echo "Creating token: $token_path"
 
 # Ensure the target directory exists
@@ -153,7 +180,7 @@ http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
 if [ "$http_code" != "200" ]; then
-    fail "Failed to the Word template" \
+    fail "Failed to fetch the Word template" \
             "HTTP Code: $http_code" \
             "Content: $content"
 fi
@@ -198,20 +225,17 @@ fi
 
 # Unzip Word doc to insert AWS Token and rebuild.
 echo "Embed AWS token in Word token"
-mkdir -p "$token_folder/tmp"
-tar -xf "$token_path" -C "$token_folder/tmp"
+tar -xf "$token_path" -C "$work_directory"
 
 # Replace the AWS token place holders in the word doc
-target_file="$token_folder/tmp/word/document.xml"
+target_file="$work_directory/word/document.xml"
 sed -i.bak "s|${aws_token_placeholder_id}|${token_aws_access_key_id}|g" "$target_file" && rm "$target_file.bak"
 sed -i.bak "s|${aws_token_placeholder_key}|${token_aws_secret_access_key}|g" "$target_file" && rm "$target_file.bak"
 
 # Zip up the word doc again
-pushd "$token_folder/tmp" > /dev/null
+pushd "$work_directory" > /dev/null
 zip -q -r "$token_path" ./*
 popd > /dev/null
-
-rm -r "$token_folder/tmp"
 
 # Randomise Token metadata.
 current_epoch=$(date +%s)
@@ -231,8 +255,8 @@ case $(uname | tr '[:upper:]' '[:lower:]') in
         ;;
 esac
 
-touch -a -m -t "$formatted_timestamp" "$HOME/$random_token_folder"
-touch -a -m -t "$formatted_timestamp" "$HOME/$random_token_folder/$random_token_sub_folder"
+touch -a -m -t "$formatted_timestamp" "$target_folder/$random_token_folder"
+touch -a -m -t "$formatted_timestamp" "$target_folder/$random_token_folder/$random_token_sub_folder"
 touch -a -m -t "$formatted_timestamp" "$token_path"
 
 echo "Token successfully saved to $token_path"
