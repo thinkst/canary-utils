@@ -396,4 +396,56 @@ Drop-Token_QR
 
 ####################################################################################################################################################################################################################################
 
+# Drops a sensitive command Token
+# Note : In order for the registery file to be imported, the script needs to be run as an Administrator
+function Drop-Token_Sensitive_command{
+    param (
+        [string]$TokenType = 'sensitive-cmd' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "sensitive_cmd.reg", # Desired Token file name.
+        [string]$TargetDirectory = "c:\Sensitive_command_directory", # Local location to drop the token into.
+        [string]$WatchedProcess = "calc.exe" # Process you'd like to alert on
+    )
+    
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+    
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        process_name = "$WatchedProcess"
+        flock_id = "$FlockID"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $WatchedProcess"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenID = $($CreateResult).canarytoken.canarytoken
+    }
+    
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+
+    reg import $OutputFileName
+    Remove-Item $OutputFileName
+    Remove-Item $TargetDirectory 
+}
+
+Drop-Token_Sensitive_command
+
+####################################################################################################################################################################################################################################
+
 Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete"
