@@ -26,17 +26,9 @@ set -o pipefail
 auth_token_default=deadbeef12345678
 domain_hash_default=1234abcd
 
-if [[ -z "${AUTH_TOKEN}" ]]; then
-    auth_token="$auth_token_default"
-else
-    auth_token="${AUTH_TOKEN}"
-fi
-
-if [[ -z "${DOMAIN_HASH}" ]]; then
-    domain_hash="${domain_hash_default}"
-else
-    domain_hash="${DOMAIN_HASH}"
-fi
+# Use the environmental variables if set otherwise use the default variables
+auth_token=${AUTH_TOKEN:-$auth_token_default}
+domain_hash=${DOMAIN_HASH:-$domain_hash_default}
 
 results_file_name="${domain_hash}_alerts.csv"
 state_store_file_name="${domain_hash}_state_store.txt"
@@ -113,10 +105,14 @@ extract_incident_data () {
         description_fields+=",(.events[] | tostring)"
     fi
 
-    data=$(jq -r ".incidents[] | [
+    if ! data=$(jq -r ".incidents[] | [
         .updated_id,
         (.description | ${description_fields})
     ] | @csv" <<< "$content")
+    then
+        fail "jq was unable to parse html content data" \
+                "Content: $content"
+    fi
 
     if [ $add_blank_notes_column -eq 1 ]; then
         data=$(echo "$data" | sed 's/^/,/g') # Uncomment to add blank notes column, remember to update sort_on_column
@@ -134,10 +130,14 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Ping the console to ensure reachability
-response=$(curl "$base_url"/api/v1/ping \
+if ! response=$(curl "$base_url"/api/v1/ping \
             -d auth_token="$auth_token" \
             --get --silent --show-error \
             --write-out '%{http_code}' 2>&1)
+then
+    fail "curl encountered an error" \
+            "Response: $response"
+fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
@@ -163,13 +163,17 @@ echo -ne "Working: ."
 # echo -ne "/\r"
 
 # Get incidents
-response=$(curl "$base_url"/api/v1/incidents/all \
+if ! response=$(curl "$base_url"/api/v1/incidents/all \
             -d auth_token="$auth_token" \
             -d incidents_since="$incidents_since" \
             -d limit=$page_size \
             -d shrink=true \
             --get --silent --show-error \
             --write-out '%{http_code}')
+then
+    fail "curl encountered an error" \
+            "Response: $response"
+fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
@@ -179,7 +183,11 @@ if [ "$http_code" != "200" ]; then
             "Content: $content"
 fi
 
-max_updated_id=$(jq -r '.max_updated_id' <<< "$content")
+if ! max_updated_id=$(jq -r '.max_updated_id' <<< "$content")
+then
+    fail "jq was unable to read the max_updated_id from the html content" \
+        "Content: $content"
+fi
 
 if [ "$max_updated_id" == "null" ]; then
     echo '' # Newline to not override status feedback
@@ -189,7 +197,11 @@ else
     echo "$max_updated_id" > "$state_store_file_name"
 fi
 
-cursor=$(jq -r '.cursor | .next' <<< "$content")
+if ! cursor=$(jq -r '.cursor | .next' <<< "$content")
+then
+    fail "jq was unable to read the cursor from the html content" \
+        "Content: $content"
+fi
 
 data=$(extract_incident_data "$content")
 if [ "$data" != "" ]; then
@@ -209,12 +221,16 @@ while [ "$cursor" != "null" ]
 do
     echo -ne "."
 
-    response=$(curl "$base_url"/api/v1/incidents/all \
+    if ! response=$(curl "$base_url"/api/v1/incidents/all \
                 -d auth_token="$auth_token" \
                 -d cursor="$cursor" \
                 -d shrink=true \
                 --get --silent --show-error \
                 --write-out '%{http_code}')
+    then
+        fail "curl encountered an error" \
+                "Response: $response"
+    fi
     http_code=$(tail -n1 <<< "$response")  # get the last line
     content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
 
@@ -224,7 +240,12 @@ do
                 "Content: $content"
     fi
 
-    cursor=$(jq -r '.cursor | .next' <<< "$content")
+    if ! cursor=$(jq -r '.cursor | .next' <<< "$content")
+    then
+        fail "jq was unable to read the cursor from the html content" \
+            "Content: $content"
+    fi
+
     data=$(extract_incident_data "$content")
     if [ "$data" != "" ]; then
         echo "$data" >> "$results_file_name"
