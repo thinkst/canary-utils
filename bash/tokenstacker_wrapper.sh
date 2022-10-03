@@ -14,8 +14,8 @@ set -o pipefail
 # Using this script to overcome some of the limitations such as certain
 # binaries not being installed and to have a contained tokening environment.
 
-# Set PATH to a sane default (helps for scripts run via crowdstrike)
-export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+# Ensure we have the basics set in PATH (helps for scripts run via crowdstrike)
+export PATH="${PATH:+${PATH}:}/usr/sbin:/usr/bin:/sbin:/bin"
 
 ##
 ## Customize these variables to match the environment, they will be used to update the python script
