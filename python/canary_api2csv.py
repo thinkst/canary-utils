@@ -48,7 +48,7 @@ LOADED_STATE = False # Boolean variable to track if previous state was recovered
 # sort_results () {
 #     cp "$RESULTS_FILE_NAME" "$RESULTS_FILE_NAME.unsorted"
 #     head -n1 "$RESULTS_FILE_NAME.unsorted" > "$RESULTS_FILE_NAME" # Save the header in the file
-#     tail -n+2 "$RESULTS_FILE_NAME.unsorted" | sort -t ',' -k $SORT_ON_COLUMN,$SORT_ON_COLUMN -n >> "$RESULTS_FILE_NAME" # Sort the file1
+#     tail -n+2 "$RESULTS_FILE_NAME.unsorted" | sort -t ',' -k $SORT_ON_COLUMN,$SORT_ON_COLUMN -n >> "$RESULTS_FILE_NAME" # Sort the file
 #     rm -f "$RESULTS_FILE_NAME.unsorted"
 # }
 
@@ -63,14 +63,14 @@ def stop():
         print(f"Updated results in {RESULTS_FILE_NAME}")
     sys.exit(0)
 
-def fail(message :str):
+def fail(msg :str):
     """Print failure message before exiting
 
     Args:
-        message (str): Message to print
+        msg (str): Message to print
     """
     print('') # Newline to not override status feedback
-    print(message)
+    print(msg)
     sys.exit(1)
 
 # To change what data is processed from the incidents update
@@ -83,8 +83,6 @@ def create_csv_header():
 
     if ADD_BLANK_NOTES_COLUMN:
         header += "Notes,"
-        # Increment the column sorting index by one
-        SORT_ON_COLUMN += 1
 
     header += "Updated ID"
     header += ",Date and Time"
@@ -97,10 +95,9 @@ def create_csv_header():
     if ADD_ADDITIONAL_EVENT_DETAILS:
         header += ",Additional Events"
 
-    with open(RESULTS_FILE_NAME, 'w+', encoding='utf-8') as f:
-        f.write(f"{header}\n")
+    return header
 
-def extract_incident_data(incidents: list) -> str:
+def extract_incident_data(incidents_to_process: list) -> str:
     """Process the incidents in the list and extract required information
 
     Args:
@@ -111,7 +108,7 @@ def extract_incident_data(incidents: list) -> str:
     """
 
     incident_data = []
-    for incident in incidents:
+    for incident in incidents_to_process:
         data_line = ""
         if ADD_BLANK_NOTES_COLUMN:
             data_line += ","
@@ -148,10 +145,10 @@ try:
     response.raise_for_status()
 except requests.exceptions.HTTPError as error:
     message = f"The console threw and HTTPError:\nError:{error}\nResponse: {response.text}"
-    fail(message=message)
+    fail(msg=message)
 except requests.exceptions.RequestException as error:
     message = f"Failed to communicate with the console:\n{error}"
-    fail(message=message)
+    fail(msg=message)
 
 # Check if we have state from the last incidents fetch
 if os.path.exists(STATE_STORE_FILE_NAME):
@@ -186,13 +183,13 @@ try:
     incidents = json_data.get('incidents', None)
 except requests.exceptions.JSONDecodeError as error:
     message = f"Unable to process console return:\nError:{error}\nResponse: {response.text}"
-    fail(message=message)
+    fail(msg=message)
 except requests.exceptions.HTTPError as error:
     message = f"The console threw and HTTPError:\nError:{error}\nResponse: {response.text}"
-    fail(message=message)
+    fail(msg=message)
 except requests.exceptions.RequestException as error:
     message = f"Failed to communicate with the console:\n{error}"
-    fail(message=message)
+    fail(msg=message)
 
 if max_updated_id is None:
     print('') # Newline to not override status feedback
@@ -202,12 +199,15 @@ else:
     with open(STATE_STORE_FILE_NAME, 'w+', encoding='utf-8') as f:
         f.write(f"{max_updated_id}")
 
-data = extract_incident_data(incidents)
-if data != "":
-    if not LOADED_STATE:
-        create_csv_header()
+INCIDENT_DATA = extract_incident_data(incidents)
+if INCIDENT_DATA != "":
     with open(RESULTS_FILE_NAME, 'a', encoding='utf-8') as f:
-        f.write(f"{data}\n")
+        if not LOADED_STATE:
+            if ADD_BLANK_NOTES_COLUMN:
+                # Increment the column sorting index by one if a note column is added
+                SORT_ON_COLUMN += 1
+            f.write(f"{create_csv_header()}\n")
+        f.write(f"{INCIDENT_DATA}\n")
 
 # There is no more data to read, we can stop
 if cursor is None:
@@ -234,18 +234,18 @@ while cursor is not None:
         incidents = json_data.get('incidents', None)
     except requests.exceptions.JSONDecodeError as error:
         message = f"Unable to process console return:\nError:{error}\nResponse: {response.text}"
-        fail(message=message)
+        fail(msg=message)
     except requests.exceptions.HTTPError as error:
         message = f"The console threw and HTTPError:\nError:{error}\nResponse: {response.text}"
-        fail(message=message)
+        fail(msg=message)
     except requests.exceptions.RequestException as error:
         message = f"Failed to communicate with the console:\n{error}"
-        fail(message=message)
+        fail(msg=message)
 
-    data = extract_incident_data(incidents)
-    if data != "":
+    INCIDENT_DATA = extract_incident_data(incidents)
+    if INCIDENT_DATA != "":
         with open(RESULTS_FILE_NAME, 'a', encoding='utf-8') as f:
-            f.write(f"{data}\n")
+            f.write(f"{INCIDENT_DATA}\n")
 
     # There is no more data to read, we can stop
     if cursor is None:
