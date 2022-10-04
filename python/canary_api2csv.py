@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Canary - API too CSV
+Canary - API to CSV
 This script is intended to get basic alert information into a SIEM. Rather than
 pulling full alert information, this script pulls just enough data to correlate
 Canary and Canarytoken alerts with other events or to trigger the IR process.
