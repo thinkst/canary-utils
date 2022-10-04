@@ -17,6 +17,7 @@ file saved alongside the results file {DOMAIN_HASH}_alerts.csv.
 import os
 import sys
 import json
+import csv
 import requests
 
 # The only variable that need to be set is the AUTH_TOKEN and DOMAIN_HASH
@@ -29,10 +30,9 @@ DOMAIN_HASH_DEFAULT = "1234abcd"
 
 # Customise the script output by configuring these optional variables
 PAGE_SIZE = 500 # The number of incidents to get per page
-PAGE_SIZE = 1
 INCIDENTS_SINCE = 0 # 0 = Default to get all incidents
-SORT_ON_COLUMN = 1 # Set the column on which the csv should be sorted on update
-ADD_BLANK_NOTES_COLUMN = False # Set to True to add a notes column to the csv that you can add notes too
+SORT_ON_COLUMN = 0 # Column on which the csv should be sorted; First column index is 0
+ADD_BLANK_NOTES_COLUMN = False # Set True to add a notes column you can add notes too
 ADD_ADDITIONAL_EVENT_DETAILS = False # Set to True to add additional event details to the csv
 
 # Use the environmental variables if set otherwise use the default variables
@@ -45,17 +45,27 @@ STATE_STORE_FILE_NAME = f"{DOMAIN_HASH}_state_store.txt"
 BASE_URL = f"https://{DOMAIN_HASH}.canary.tools"
 LOADED_STATE = False # Boolean variable to track if previous state was recovered
 
-# sort_results () {
-#     cp "$RESULTS_FILE_NAME" "$RESULTS_FILE_NAME.unsorted"
-#     head -n1 "$RESULTS_FILE_NAME.unsorted" > "$RESULTS_FILE_NAME" # Save the header in the file
-#     tail -n+2 "$RESULTS_FILE_NAME.unsorted" | sort -t ',' -k $SORT_ON_COLUMN,$SORT_ON_COLUMN -n >> "$RESULTS_FILE_NAME" # Sort the file
-#     rm -f "$RESULTS_FILE_NAME.unsorted"
-# }
+csv.register_dialect('custom_csv', delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL )
+
+def _key(row):
+    return int(row[SORT_ON_COLUMN])
+
+def sort_results():
+    """Sort the csv file containing the results
+    """
+    with open(RESULTS_FILE_NAME, 'r', encoding='utf-8') as file_in:
+        reader = csv.reader(file_in, dialect='custom_csv')
+        header = next(reader)
+        rows = sorted(reader, key=_key)
+    with open(RESULTS_FILE_NAME, 'w', encoding='utf-8', newline="") as file_out:
+        writer = csv.writer(file_out, dialect='custom_csv')
+        writer.writerow(header)
+        writer.writerows(rows)
 
 def stop():
     """Print relevant message before exiting
     """
-    # sort_results()
+    sort_results()
     print('') # Newline to not override status feedback
     if not LOADED_STATE:
         print(f"Results saved in {RESULTS_FILE_NAME}")
@@ -79,21 +89,23 @@ def create_csv_header():
     """Function to write the csv file header
     """
 
-    header = ""
+    global SORT_ON_COLUMN
+    header = []
 
     if ADD_BLANK_NOTES_COLUMN:
-        header += "Notes,"
+        header.append("Notes")
+        SORT_ON_COLUMN += 1
 
-    header += "Updated ID"
-    header += ",Date and Time"
-    header += ",Alert Description"
-    header += ",Target"
-    header += ",Target Port"
-    header += ",Attacker"
-    header += ",Attacker RevDNS"
+    header.append("Updated ID")
+    header.append("Date and Time")
+    header.append("Alert Description")
+    header.append("Target")
+    header.append("Target Port")
+    header.append("Attacker")
+    header.append("Attacker RevDNS")
 
     if ADD_ADDITIONAL_EVENT_DETAILS:
-        header += ",Additional Events"
+        header.append("Additional Events")
 
     return header
 
@@ -107,29 +119,39 @@ def extract_incident_data(incidents_to_process: list) -> str:
         str: String with csv data
     """
 
-    incident_data = []
-    for incident in incidents_to_process:
-        data_line = ""
-        if ADD_BLANK_NOTES_COLUMN:
-            data_line += ","
+    processed_incidents = []
 
-        data_line += f"{incident.get('updated_id', None)}"
+    open_flag = 'a' # Append to file if it exists
+    if not os.path.exists(RESULTS_FILE_NAME):
+        # Prep new csv file if it does not exist
+        open_flag = 'w'
+        processed_incidents.append(create_csv_header())
+
+    for incident in incidents_to_process:
+        incident_data = []
+        if ADD_BLANK_NOTES_COLUMN:
+            incident_data.append("")
+
+        incident_data.append(incident.get('updated_id', None))
 
         description = incident.get('description', None)
 
-        data_line += f",{description.get('created_std', '')}"
-        data_line += f",{description.get('description', '')}"
-        data_line += f",{description.get('dst_host', '')}"
-        data_line += f",{description.get('dst_port', '')}"
-        data_line += f",{description.get('src_host', '')}"
-        data_line += f",{description.get('src_host_reverse', '')}"
+        incident_data.append(f"{description.get('created_std', '')}")
+        incident_data.append(f"{description.get('description', '')}")
+        incident_data.append(f"{description.get('dst_host', '')}")
+        incident_data.append(f"{description.get('dst_port', '')}")
+        incident_data.append(f"{description.get('src_host', '')}")
+        incident_data.append(f"{description.get('src_host_reverse', '')}")
 
         if ADD_ADDITIONAL_EVENT_DETAILS:
-            data_line += f",{json.dumps(description.get('events', ''))}"
+            events_data = json.dumps(description.get('events', ''), separators=(',', ':'))
+            incident_data.append(f"{events_data}")
 
-        incident_data.append(data_line)
+        processed_incidents.append(incident_data)
 
-    return '\n'.join(incident_data)
+    with open(RESULTS_FILE_NAME, open_flag, encoding='utf-8') as file_out:
+        writer = csv.writer(file_out, dialect='custom_csv')
+        writer.writerows(processed_incidents)
 
 # Ping the console to ensure reachability
 print("Check console is reachable")
@@ -161,7 +183,7 @@ if not LOADED_STATE:
     print("No state found, fetching all incidents from the console. (This may take a while)")
 
 print(f"Fetching incidents from console: {BASE_URL}")
-print("Working: .", end='')
+print("Working: .", end='', flush=True)
 
 # Get incidents
 request_parameters = {
@@ -179,7 +201,7 @@ try:
     response.raise_for_status()
     json_data = response.json()
     max_updated_id = json_data.get('max_updated_id', None)
-    cursor = json_data.get('cursor', [None]).get('next', None)
+    cursor = json_data.get('cursor', {}).get('next', None)
     incidents = json_data.get('incidents', None)
 except requests.exceptions.JSONDecodeError as error:
     message = f"Unable to process console return:\nError:{error}\nResponse: {response.text}"
@@ -199,15 +221,7 @@ else:
     with open(STATE_STORE_FILE_NAME, 'w+', encoding='utf-8') as f:
         f.write(f"{max_updated_id}")
 
-INCIDENT_DATA = extract_incident_data(incidents)
-if INCIDENT_DATA != "":
-    with open(RESULTS_FILE_NAME, 'a', encoding='utf-8') as f:
-        if not LOADED_STATE:
-            if ADD_BLANK_NOTES_COLUMN:
-                # Increment the column sorting index by one if a note column is added
-                SORT_ON_COLUMN += 1
-            f.write(f"{create_csv_header()}\n")
-        f.write(f"{INCIDENT_DATA}\n")
+extract_incident_data(incidents)
 
 # There is no more data to read, we can stop
 if cursor is None:
@@ -215,7 +229,7 @@ if cursor is None:
 
 # While we have a pagination cursor keep loading data
 while cursor is not None:
-    print(".", end='')
+    print(".", end='', flush=True)
 
     request_parameters = {
         'auth_token': AUTH_TOKEN,
@@ -242,10 +256,7 @@ while cursor is not None:
         message = f"Failed to communicate with the console:\n{error}"
         fail(msg=message)
 
-    INCIDENT_DATA = extract_incident_data(incidents)
-    if INCIDENT_DATA != "":
-        with open(RESULTS_FILE_NAME, 'a', encoding='utf-8') as f:
-            f.write(f"{INCIDENT_DATA}\n")
+    extract_incident_data(incidents)
 
     # There is no more data to read, we can stop
     if cursor is None:
