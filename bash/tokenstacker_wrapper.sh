@@ -68,6 +68,11 @@ target_folder=""
 # public files can be referenced by https://github.com/owner/repo/raw/main/tokenstacker_word_and_aws.py
 python_tokenstacker_script_url="https://github.com/thinkst/canary-utils/raw/master/python/tokenstacker_word_and_aws.py"
 
+# Personal access token generated on Github,
+# if blank the token stacker script will downloaded using public channels.
+# https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+python_tokenstacker_github_token=""
+
 ##
 ## Tokenstacker wrapper script
 ##
@@ -99,11 +104,11 @@ replace_variable () {
 
 # Fetch Python token stacker
 python_script_path="$work_directory/tokenstacker_word_and_aws.py"
-if [ "$github_personal_access_token" != "" ]; then
+if [ "$python_tokenstacker_github_token" != "" ]; then
     echo "Fetching tokenstacker script with Github Access Token"
     response=$(curl "$python_tokenstacker_script_url" \
                 -o "$python_script_path" \
-                -d Authorization="token $github_personal_access_token" \
+                -d Authorization="token $python_tokenstacker_github_token" \
                 -d Accept="application/vnd.github.v3.raw" \
                 --get --location --silent --show-error \
                 --write-out '\n%{http_code}' 2>&1)
