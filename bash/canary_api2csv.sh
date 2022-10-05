@@ -34,10 +34,10 @@ results_file_name="${domain_hash}_alerts.csv"
 state_store_file_name="${domain_hash}_state_store.txt"
 
 base_url="https://$domain_hash.canary.tools"
-page_size=500 # The number of incidents to get per page
+page_size=1500 # The number of incidents to get per page
 incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
-sort_on_column=1 # Set the column on which the csv should be sorted on update
+sort_on_column=1 # Set the column on which the csv should be sorted on update; First column index is 1
 
 add_blank_notes_column=0 # Set to 1 to add a notes column to the csv that you can add notes too
 add_additional_event_details=0 # Set to 1 to add additional event details to the csv
@@ -45,7 +45,7 @@ add_additional_event_details=0 # Set to 1 to add additional event details to the
 sort_results () {
     cp "$results_file_name" "$results_file_name.unsorted"
     head -n1 "$results_file_name.unsorted" > "$results_file_name" # Save the header in the file
-    tail -n+2 "$results_file_name.unsorted" | sort -t ',' -k $sort_on_column,$sort_on_column -n >> "$results_file_name" # Sort the file1
+    tail -n+2 "$results_file_name.unsorted" | sort -t ',' -k $sort_on_column,$sort_on_column -n >> "$results_file_name" # Sort the file
     rm -f "$results_file_name.unsorted"
 }
 
@@ -102,7 +102,7 @@ extract_incident_data () {
     description_fields+=",.src_host_reverse"
 
     if [ $add_additional_event_details -eq 1 ]; then
-        description_fields+=",(.events[] | tostring)"
+        description_fields+=",(.events | tostring)"
     fi
 
     if ! data=$(jq -r ".incidents[] | [
@@ -160,7 +160,6 @@ fi
 
 echo "Fetching incidents from console: $base_url"
 echo -ne "Working: ."
-# echo -ne "/\r"
 
 # Get incidents
 if ! response=$(curl "$base_url"/api/v1/incidents/all \
