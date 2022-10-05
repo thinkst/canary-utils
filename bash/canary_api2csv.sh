@@ -34,7 +34,7 @@ results_file_name="${domain_hash}_alerts.csv"
 state_store_file_name="${domain_hash}_state_store.txt"
 
 base_url="https://$domain_hash.canary.tools"
-page_size=500 # The number of incidents to get per page
+page_size=1500 # The number of incidents to get per page
 incidents_since=0 # Default to get all incidents
 loaded_state=0 # Boolean variable to track if previous state was recovered
 sort_on_column=1 # Set the column on which the csv should be sorted on update; First column index is 1

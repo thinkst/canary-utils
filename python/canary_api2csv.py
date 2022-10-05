@@ -29,7 +29,7 @@ AUTH_TOKEN_DEFAULT = "deadbeef12345678"
 DOMAIN_HASH_DEFAULT = "1234abcd"
 
 # Customise the script output by configuring these optional variables
-PAGE_SIZE = 500 # The number of incidents to get per page
+PAGE_SIZE = 1500 # The number of incidents to get per page
 INCIDENTS_SINCE = 0 # 0 = Default to get all incidents
 SORT_ON_COLUMN = 0 # Column on which the csv should be sorted; First column index is 0
 ADD_BLANK_NOTES_COLUMN = False # Set True to add a notes column you can add notes too
