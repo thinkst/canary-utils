@@ -18,6 +18,7 @@ import os
 import sys
 import json
 import csv
+import subprocess
 import requests
 
 # The only variable that need to be set is the AUTH_TOKEN and DOMAIN_HASH
@@ -31,7 +32,7 @@ DOMAIN_HASH_DEFAULT = "1234abcd"
 # Customise the script output by configuring these optional variables
 PAGE_SIZE = 1500 # The number of incidents to get per page
 INCIDENTS_SINCE = 0 # 0 = Default to get all incidents
-SORT_ON_COLUMN = 0 # Column on which the csv should be sorted; First column index is 0
+SORT_ON_COLUMN = 1 # Column on which the csv should be sorted; First column index is 1
 ADD_BLANK_NOTES_COLUMN = False # Set True to add a notes column you can add notes too
 ADD_ADDITIONAL_EVENT_DETAILS = False # Set to True to add additional event details to the csv
 
@@ -45,28 +46,30 @@ STATE_STORE_FILE_NAME = f"{DOMAIN_HASH}_state_store.txt"
 BASE_URL = f"https://{DOMAIN_HASH}.canary.tools"
 LOADED_STATE = False # Boolean variable to track if previous state was recovered
 
-csv.register_dialect('custom_csv', delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL )
-
-def _key(row):
-    return int(row[SORT_ON_COLUMN])
-
 def sort_results():
-    """Sort the csv file containing the results
+    """Sort the csv file containing the results.
+    Sorting is done using the sort binary so we don't have to read the whole file
+    into memory. Other options could be panda, but that is an extra dependency
     """
-    with open(RESULTS_FILE_NAME, 'r', encoding='utf-8') as file_in:
-        reader = csv.reader(file_in, dialect='custom_csv')
-        header = next(reader)
-        rows = sorted(reader, key=_key)
-    with open(RESULTS_FILE_NAME, 'w', encoding='utf-8', newline="") as file_out:
-        writer = csv.writer(file_out, dialect='custom_csv')
-        writer.writerow(header)
-        writer.writerows(rows)
+    print('Sorting csv file')
+    commands_to_run = [
+        f'cp "{RESULTS_FILE_NAME}" "{RESULTS_FILE_NAME}.unsorted"',
+        f'head -n1 "{RESULTS_FILE_NAME}.unsorted" > "{RESULTS_FILE_NAME}"', # Save the header in the file
+        f'tail -n+2 "{RESULTS_FILE_NAME}.unsorted" | sort -t \",\" -k {SORT_ON_COLUMN},{SORT_ON_COLUMN} -n >> "{RESULTS_FILE_NAME}"', # Sort the file
+        f'rm -f "{RESULTS_FILE_NAME}.unsorted"',
+    ]
+
+    try:
+        for command in commands_to_run:
+            subprocess.run(command, shell=True, check=True)
+    except subprocess.CalledProcessError as sort_error:\
+        fail(f"Failed to sort the csv file:\nError:{sort_error}")
 
 def stop():
     """Print relevant message before exiting
     """
-    sort_results()
     print('') # Newline to not override status feedback
+    sort_results()
     if not LOADED_STATE:
         print(f"Results saved in {RESULTS_FILE_NAME}")
     else:
@@ -150,7 +153,7 @@ def extract_incident_data(incidents_to_process: list) -> str:
         processed_incidents.append(incident_data)
 
     with open(RESULTS_FILE_NAME, open_flag, encoding='utf-8') as file_out:
-        writer = csv.writer(file_out, dialect='custom_csv')
+        writer = csv.writer(file_out, dialect='excel')
         writer.writerows(processed_incidents)
 
 # Ping the console to ensure reachability
