@@ -57,7 +57,7 @@ while True:
         MAX_INT = int(MAX_INT/10)
 
 def _key(row):
-    return int(row[SORT_ON_COLUMN])
+    return row[SORT_ON_COLUMN]
 
 def sort_results():
     """Sort the csv file containing the results
@@ -99,12 +99,10 @@ def create_csv_header():
     """Function to write the csv file header
     """
 
-    global SORT_ON_COLUMN
     header = []
 
     if ADD_BLANK_NOTES_COLUMN:
         header.append("Notes")
-        SORT_ON_COLUMN += 1
 
     header.append("Updated ID")
     header.append("Date and Time")
