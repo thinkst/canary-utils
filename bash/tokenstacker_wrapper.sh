@@ -106,18 +106,26 @@ replace_variable () {
 python_script_path="$work_directory/tokenstacker_word_and_aws.py"
 if [ "$python_tokenstacker_github_token" != "" ]; then
     echo "Fetching tokenstacker script with Github Access Token"
-    response=$(curl "$python_tokenstacker_script_url" \
+    if ! response=$(curl "$python_tokenstacker_script_url" \
                 -o "$python_script_path" \
                 -d Authorization="token $python_tokenstacker_github_token" \
                 -d Accept="application/vnd.github.v3.raw" \
                 --get --location --silent --show-error \
                 --write-out '\n%{http_code}' 2>&1)
+    then
+        fail "curl encountered an error" \
+                "Response: $response"
+    fi
 else
     echo "Fetching tokenstacker script using Github public channel"
-    response=$(curl "$python_tokenstacker_script_url" \
+    if ! response=$(curl "$python_tokenstacker_script_url" \
                 -o "$python_script_path" \
                 --get --location --silent --show-error \
                 --write-out '\n%{http_code}' 2>&1)
+    then
+        fail "curl encountered an error" \
+                "Response: $response"
+    fi
 fi
 http_code=$(tail -n1 <<< "$response")  # get the last line
 content=$(sed '$ d' <<< "$response")   # get all but the last line which contains the status code
