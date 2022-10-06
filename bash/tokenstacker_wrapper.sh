@@ -95,6 +95,11 @@ clean_up () {
 # register the clean_up function to be called on the EXIT signal
 trap clean_up EXIT
 
+fail () {
+    for arg in "$@"; do echo >&2 "$arg"; done
+    exit 1
+}
+
 replace_variable () {
     local variable_name=$1
     local variable_value=$2
@@ -159,18 +164,15 @@ echo "Running tokenstacker script"
 
 venv_directory="$work_directory/venv"
 if ! /usr/bin/env python3 -m venv "$venv_directory"; then
-    echo "Failed to create python virtual environment"
-    exit 1
+    fail "Failed to create python virtual environment"
 fi
 
 if ! "$venv_directory/bin/python3" -m pip install requests --quiet --disable-pip-version-check; then
-    echo "Failed to prepare python virtual environment"
-    exit 1
+    fail "Failed to prepare python virtual environment"
 fi
 
 if ! "$venv_directory/bin/python3" "$python_script_path"; then
-    echo "Failed to run tokenstacker script"
-    exit 1
+    fail "Failed to run tokenstacker script"
 fi
 
 echo "Tokening complete"
