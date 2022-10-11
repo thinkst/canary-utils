@@ -165,8 +165,8 @@ if [ "$github_personal_access_token" != "" ]; then
     echo "Fetching Template with Github Access Token"
     response=$(curl "$word_template_url" \
                 -o "$token_path" \
-                -d Authorization="token $github_personal_access_token" \
-                -d Accept="application/vnd.github.v3.raw" \
+                -H "Authorization: token $github_personal_access_token" \
+                -H "Accept: application/vnd.github.v3.raw" \
                 --get --location --silent --show-error \
                 --write-out '\n%{http_code}' 2>&1)
 else
