@@ -113,8 +113,8 @@ if [ "$python_tokenstacker_github_token" != "" ]; then
     echo "Fetching tokenstacker script with Github Access Token"
     if ! response=$(curl "$python_tokenstacker_script_url" \
                 -o "$python_script_path" \
-                -d Authorization="token $python_tokenstacker_github_token" \
-                -d Accept="application/vnd.github.v3.raw" \
+                -H "Authorization: token $python_tokenstacker_github_token" \
+                -H "Accept: application/vnd.github.v3.raw" \
                 --get --location --silent --show-error \
                 --write-out '\n%{http_code}' 2>&1)
     then
