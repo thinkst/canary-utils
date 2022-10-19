@@ -137,7 +137,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 ### canaryconsole.py
 **Author:** Thinkst (Adrian)  
 **Purpose:** This is a command-line version of the Canary console. Functionality is limited to read-only functions at this stage, but it may be further developed into a tool that makes it easier to deploy large numbers of Canarytokens or make mass changes to the Canaries.  
-**Usage:** Type ```python3 canaryconsole.py``` and it will do the rest, including prompting for console name and API key.
+**Usage:** Type ```python3 canaryconsole.py``` and it will do the rest, including prompting for the console name and API key.
 
 ### canarygen_awscreds_auto.py
 **Author:** Thinkst (Adrian)  
