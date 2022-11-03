@@ -72,7 +72,24 @@ function Drop-Token_Folder{
     Else {
         $TokenID = $($CreateResult).canarytoken.canarytoken
     }
-    
+
+#   If the Token does not trigger, this may be due to EnableShellShortcutIconRemotePath being disabled, uncommenting the below section will try set the registry key. This means the script needs be run as administrator.
+#    try {
+#        Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "EnableShellShortcutIconRemotePath" -ErrorAction Stop
+#    }
+#    catch [System.Management.Automation.ItemNotFoundException] {
+#        Write-Host -ForegroundColor Green "[*] Registry Key: EnableShellShortcutIconRemotePath, not set. Configuring...."
+#        
+#        try {
+#            New-Item –Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\" –Name Explorer -ErrorAction Stop
+#            Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer' -Name 'EnableShellShortcutIconRemotePath' -Value 1 -Type DWord -Force
+#        }
+#        catch [System.Security.SecurityException] {
+#        Write-Host -ForegroundColor Green "[!] Error: Cannot set registry key, Are we running as administrator?"
+#        Write-Host -ForegroundColor Green "[*] Deploying Token Anyway..."
+#        }
+#    }
+
     Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$TargetDirectory\$TempZipFilename"
     Expand-Archive $TargetDirectory\$TempZipFilename -DestinationPath $TargetDirectory\
     Remove-item $TargetDirectory\$TempZipFilename
