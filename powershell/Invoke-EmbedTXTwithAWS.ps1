@@ -105,4 +105,26 @@ $replaceKey = $replaceID -replace $FindText2, $ReplaceText2
 
 $replaceKey | Set-Content -Path $OutputFileName
 
+# Set random MAC attributes 
+
+$mainFolderPath = 'C:\ProgramData\' + $mainFolder
+$subFolderPath = 'C:\ProgramData\' + $mainFolder + '\' + $subFolder
+
+$dt1 = (Get-Date).AddDays(-(Get-Random -Minimum 1000 -Maximum 1500)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440)) 
+$dt2 = (Get-Date).AddDays(-(Get-Random -Minimum 700 -Maximum 999)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440))
+$dt3 = (Get-Date).AddDays(-(Get-Random -Minimum 400 -Maximum 699)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440))
+$dt4 = (Get-Date).AddDays(-(Get-Random -Minimum 1 -Maximum 399)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440))
+
+$(Get-Item $mainFolderPath).CreationTimeUTC=$dt1 
+$(Get-Item $mainFolderPath).LastAccessTimeUTC=$dt1
+$(Get-Item $mainFolderPath).LastWriteTimeUTC=$dt1
+
+$(Get-Item $subFolderPath).CreationTimeUTC=$dt2 
+$(Get-Item $subFolderPath).LastAccessTimeUTC=$dt2
+$(Get-Item $subFolderPath).LastWriteTimeUTC=$dt2
+
+$(Get-Item $OutputFileName).CreationTimeUTC=$dt3
+$(Get-Item $OutputFileName).LastAccessTimeUTC=$dt4
+$(Get-Item $OutputFileName).LastWriteTimeUTC=$dt4 
+
 Write-Host "Token Successfuly dropped to $OutputFileName"
