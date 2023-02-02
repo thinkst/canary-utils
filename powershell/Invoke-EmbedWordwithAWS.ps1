@@ -179,182 +179,24 @@ Remove-Item $tokeneniseFile.Split('.')[0] -Force -Recurse
 
 Remove-Item $tokeneniseFile
 
-# Random date stuff goes here
-# https://gist.githubusercontent.com/emyann/826d9f799fb5f0d115ac3b9eaaa3a958/raw/9fca347bd0a84c448bef153ea536c788079c6b92/RandomDateTimeGenerator.ps1
-
-function Get-RandomDateBetween{
-    <#
-    .EXAMPLE
-    Get-RandomDateBetween -StartDate (Get-Date) -EndDate (Get-Date).AddDays(15)
-    #>
-    [Cmdletbinding()]
-    param(
-        [parameter(Mandatory=$True)][DateTime]$StartDate,
-        [parameter(Mandatory=$True)][DateTime]$EndDate
-        )
-
-    process{
-       return Get-Random -Minimum $StartDate.Ticks -Maximum $EndDate.Ticks | Get-Date -Format d
-    }
-}
-
-
-function Get-RandomTimeBetween{
-  <#
-    .EXAMPLE
-    Get-RandomTimeBetween -StartTime "08:30" -EndTime "16:30"
-    #>
-     [Cmdletbinding()]
-    param(
-        [parameter(Mandatory=$True)][string]$StartTime,
-        [parameter(Mandatory=$True)][string]$EndTime
-        )
-    begin{
-        $minuteTimeArray = @("00","15","30","45")
-    }    
-    process{
-        $rangeHours = @($StartTime.Split(":")[0],$EndTime.Split(":")[0])
-        $hourTime = Get-Random -Minimum $rangeHours[0] -Maximum $rangeHours[1]
-        $minuteTime = "00"
-        if($hourTime -ne $rangeHours[0] -and $hourTime -ne $rangeHours[1]){
-            $minuteTime = Get-Random $minuteTimeArray
-            return "${hourTime}:${minuteTime}"
-        }
-        elseif ($hourTime -eq $rangeHours[0]) { # hour is the same as the start time so we ensure the minute time is higher
-            $minuteTime = $minuteTimeArray | ?{ [int]$_ -ge [int]$StartTime.Split(":")[1] } | Get-Random # Pick the next quarter
-            #If there is no quarter available (eg 09:50) we jump to the next hour (10:00)
-            return (.{If(-not $minuteTime){ "${[int]hourTime+1}:00" }else{ "${hourTime}:${minuteTime}" }})               
-         
-        }else { # hour is the same as the end time
-            #By sorting the array, 00 will be pick if no close hour quarter is found
-            $minuteTime = $minuteTimeArray | Sort-Object -Descending | ?{ [int]$_ -le [int]$EndTime.Split(":")[1] } | Get-Random
-            return "${hourTime}:${minuteTime}"
-        }
-    }
-}
-
-# function to modify file attributes
-# https://raw.githubusercontent.com/BC-SECURITY/Empire/master/empire/server/data/module_source/management/Set-MacAttribute.ps1
-
-function Set-MacAttribute {
-<#
-.SYNOPSIS
-
-    Sets the modified, accessed and created (Mac) attributes for a file based on another file or input.
-
-    PowerSploit Function: Set-MacAttribute
-    Author: Chris Campbell (@obscuresec)
-    License: BSD 3-Clause
-    Required Dependencies: None
-    Optional Dependencies: None
-    Version: 1.0.0
- 
-.DESCRIPTION
-
-    Set-MacAttribute sets one or more Mac attributes and returns the new attribute values of the file.
-
-.EXAMPLE
-
-    PS C:\> Set-MacAttribute -FilePath c:\test\newfile -OldFilePath c:\test\oldfile
-
-.EXAMPLE
-
-    PS C:\> Set-MacAttribute -FilePath c:\demo\test.xt -All "01/03/2006 12:12 pm"
-
-.EXAMPLE
-
-    PS C:\> Set-MacAttribute -FilePath c:\demo\test.txt -Modified "01/03/2006 12:12 pm" -Accessed "01/03/2006 12:11 pm" -Created "01/03/2006 12:10 pm"
-
-.LINK
-    
-    http://www.obscuresec.com/2014/05/touch.html
-  
-#>
-    [CmdletBinding(DefaultParameterSetName = 'Touch')] 
-        Param (
-    
-        [Parameter(Position = 1,Mandatory = $True)]
-        [ValidateNotNullOrEmpty()]
-        [String]
-        $FilePath,
-    
-        [Parameter(ParameterSetName = 'Touch')]
-        [ValidateNotNullOrEmpty()]
-        [String]
-        $OldFilePath,
-    
-        [Parameter(ParameterSetName = 'Individual')]
-        [DateTime]
-        $Modified,
-
-        [Parameter(ParameterSetName = 'Individual')]
-        [DateTime]
-        $Accessed,
-
-        [Parameter(ParameterSetName = 'Individual')]
-        [DateTime]
-        $Created,
-    
-        [Parameter(ParameterSetName = 'All')]
-        [DateTime]
-        $AllMacAttributes
-    )
-
-    Set-StrictMode -Version 2.0
-    
-    #Helper function that returns an object with the MAC attributes of a file.
-    function Get-MacAttribute {
-    
-        param($OldFileName)
-        
-        if (!(Test-Path $OldFileName)){Throw "File Not Found"}
-        $FileInfoObject = (Get-Item $OldFileName)
-
-        $ObjectProperties = @{'Modified' = ($FileInfoObject.LastWriteTime);
-                              'Accessed' = ($FileInfoObject.LastAccessTime);
-                              'Created' = ($FileInfoObject.CreationTime)};
-        $ResultObject = New-Object -TypeName PSObject -Property $ObjectProperties
-        Return $ResultObject
-    } 
-    
-    #test and set variables
-    if (!(Test-Path $FilePath)){Throw "$FilePath not found"}
-
-    $FileInfoObject = (Get-Item $FilePath)
-    
-    if ($PSBoundParameters['AllMacAttributes']){
-        $Modified = $AllMacAttributes
-        $Accessed = $AllMacAttributes
-        $Created = $AllMacAttributes
-    }
-
-    if ($PSBoundParameters['OldFilePath']){
-
-        if (!(Test-Path $OldFilePath)){Write-Error "$OldFilePath not found."}
-
-        $CopyFileMac = (Get-MacAttribute $OldFilePath)
-        $Modified = $CopyFileMac.Modified
-        $Accessed = $CopyFileMac.Accessed
-        $Created = $CopyFileMac.Created
-    }
-
-    if ($Modified) {$FileInfoObject.LastWriteTime = $Modified}
-    if ($Accessed) {$FileInfoObject.LastAccessTime = $Accessed}
-    if ($Created) {$FileInfoObject.CreationTime = $Created}
-
-    Return (Get-MacAttribute $FilePath)
-}
-
-# Set the attributes
-# Can confirm attributes using Get-MacAttribute
+# Set random MAC attributes 
 
 $mainFolderPath = 'C:\ProgramData\' + $mainFolder
 $subFolderPath = 'C:\ProgramData\' + $mainFolder + '\' + $subFolder
 
-$mainAttribute = ((Get-RandomDateBetween -StartDate (Get-Date).AddDays(-(Get-Random -Minimum 1000 -Maximum 1500)) -EndDate (Get-Date)) + " " + (Get-RandomTimeBetween -StartTime "08:00" -EndTime "20:00"))
-$subAttribute = ((Get-RandomDateBetween -StartDate (Get-Date).AddDays(-(Get-Random -Minimum 700 -Maximum 999)) -EndDate (Get-Date)) + " " + (Get-RandomTimeBetween -StartTime "08:00" -EndTime "20:00"))
+$dt1 = (Get-Date).AddDays(-(Get-Random -Minimum 1000 -Maximum 1500)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440)) 
+$dt2 = (Get-Date).AddDays(-(Get-Random -Minimum 700 -Maximum 999)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440))
+$dt3 = (Get-Date).AddDays(-(Get-Random -Minimum 400 -Maximum 699)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440))
+$dt4 = (Get-Date).AddDays(-(Get-Random -Minimum 1 -Maximum 399)).AddMinutes(-(Get-Random -Minimum 1 -Maximum 1440))
 
-Set-MacAttribute -FilePath $mainFolderPath -Created $mainAttribute -Modified $mainAttribute -Accessed $mainAttribute
-Set-MacAttribute -FilePath $subFolderPath -Created $subAttribute -Modified $subAttribute -Accessed $subAttribute
-Set-MacAttribute -FilePath $OutputFileName -Created ((Get-RandomDateBetween -StartDate (Get-Date).AddDays(-(Get-Random -Minimum 400 -Maximum 699)) -EndDate (Get-Date)) + " " + (Get-RandomTimeBetween -StartTime "08:00" -EndTime "20:00"))
-Set-MacAttribute -FilePath $OutputFileName -Modified ((Get-RandomDateBetween -StartDate (Get-Date).AddDays(-(Get-Random -Minimum 1 -Maximum 399)) -EndDate (Get-Date)) + " " + (Get-RandomTimeBetween -StartTime "08:00" -EndTime "20:00")) 
+$(Get-Item $mainFolderPath).CreationTimeUTC=$dt1 
+$(Get-Item $mainFolderPath).LastAccessTimeUTC=$dt1
+$(Get-Item $mainFolderPath).LastWriteTimeUTC=$dt1
+
+$(Get-Item $subFolderPath).CreationTimeUTC=$dt2 
+$(Get-Item $subFolderPath).LastAccessTimeUTC=$dt2
+$(Get-Item $subFolderPath).LastWriteTimeUTC=$dt2
+
+$(Get-Item $OutputFileName).CreationTimeUTC=$dt3
+$(Get-Item $OutputFileName).LastAccessTimeUTC=$dt4
+$(Get-Item $OutputFileName).LastWriteTimeUTC=$dt4
