@@ -508,6 +508,49 @@ function Drop-Token_Sensitive_command{
 
 Drop-Token_Sensitive_command
 
+ ####################################################################################################################################################################################################################################
+
+# Adding generic creds to cmdkey
+# Reference : https://blog.thinkst.com/2021/06/rdp-cmdkey-canary-and-thee_10.html
+
+cmdkey /add:02-FINANCE-02 /user:administrator /pass:super-secret123
+
 ####################################################################################################################################################################################################################################
 
-Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete"
+# Create RDP Shortcut pointing towards a Canary
+# Note : this should be accessible from your Tokened Host.
+
+function Drop-RDP_Shortcut{
+    param (
+        [string]$CanaryIP = '192.168.1.1' , # Enter your Canaries IP Address.
+        [string]$ShortcutFilename = "SRV01.lnk", # Enter your preffered shortcut name, usually your Canaries Hostname.
+        [string]$TargetDirectory = "c:\RDP_Shortcut_directory", # Local location to drop the shortcut into.
+        [string]$RDPPass = "Rn55ae5$$A!" # Enter your preffered password
+    )
+    
+    $OutputFileName = "$TargetDirectory\$ShortcutFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+    
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+
+    cmdkey /generic:$CanaryIP /user:$env:UserName /pass:$RDPPass
+    
+    $wshshell = New-Object -ComObject WScript.Shell
+    $lnk = $wshshell.CreateShortcut($OutputFileName)
+    $lnk.TargetPath = "%windir%\system32\mstsc.exe"
+    $lnk.Arguments = "/v:$CanaryIP"
+    $lnk.Description = "RDP"
+    $lnk.Save()
+}
+
+Drop-RDP_Shortcut
+
+####################################################################################################################################################################################################################################
+
+Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete" 
