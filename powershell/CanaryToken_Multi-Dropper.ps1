@@ -523,7 +523,7 @@ cmdkey /add:02-FINANCE-02 /user:administrator /pass:super-secret123
 function Drop-RDP_Shortcut{
     param (
         [string]$CanaryIP = '192.168.1.1' , # Enter your Canaries IP Address.
-        [string]$ShortcutFilename = "SRV01.lnk", # Enter your preffered shortcut name, usually your Canaries Hostname.
+        [string]$ShortcutFilename = "SRV01.lnk", # Enter your preferred shortcut name, usually your Canaries Hostname.
         [string]$TargetDirectory = "c:\RDP_Shortcut_directory", # Local location to drop the shortcut into.
         [string]$RDPPass = "Rn55ae5$$A!" # Enter your preffered password
     )
