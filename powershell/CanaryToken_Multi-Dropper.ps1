@@ -147,6 +147,51 @@ Drop-Token_AWS
 
 ####################################################################################################################################################################################################################################
 
+#Drops an Azure API Token
+function Drop-Token_Azure{
+    param (
+        [string]$TokenType = 'azure-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "azure_prod.pem", # Desired Token file name.
+        [string]$TargetDirectory = "c:\azure_directory" # Local location to drop the token into.
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        flock_id = "$FlockID"
+        azure_id_cert_file_name = "$TokenFilename"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenID = $($CreateResult).canarytoken.canarytoken
+    }
+    
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Drop-Token_Azure
+
+####################################################################################################################################################################################################################################
+
 #Drops a Word Token
 function Drop-Token_Word{
     param (
