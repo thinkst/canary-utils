@@ -1,0 +1,18 @@
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-0af5622cf9bdd8f98  # Canary AMI ID, can be found in https://console.aws.amazon.com/ec2/home#AMICatalog:
+      InstanceType: t3.micro
+      Tags:
+        - Key: Name
+          Value: SRV-01 # Preffered Name of instsance
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          SubnetId: subnet-0d5b4c1b5c4bda540 #Preffered Subnet, VPC is automatically selected from this.
+          AssociatePublicIpAddress: false
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 8
+            VolumeType: gp2
