@@ -36,8 +36,8 @@ else {
 
 ####################################################################################################################################################################################################################################
 
-#Drops a Windows Folder Token
-function Drop-Token_Folder{
+# Drops a Windows Folder Token
+function Deploy-Token_Folder{
     param (
         [string]$TokenType = 'windows-dir', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TargetFolderName = "Folder_Token", # Desired Token Folder name.
@@ -99,12 +99,12 @@ function Drop-Token_Folder{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$TargetDirectory\$TargetFolderName'. Complete on $env:computername"
 }
 
-Drop-Token_Folder
+Deploy-Token_Folder
 
 ####################################################################################################################################################################################################################################
 
 #Drops an AWS API Token
-function Drop-Token_AWS{
+function Deploy-Token_AWS{
     param (
         [string]$TokenType = 'aws-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "aws-keys.txt", # Desired Token file name.
@@ -143,19 +143,21 @@ function Drop-Token_AWS{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_AWS
+Deploy-Token_AWS
 
 ####################################################################################################################################################################################################################################
 
-#Drops an Azure API Token
-function Drop-Token_Azure{
+# Drops an Azure API Token
+function Deploy-Token_Azure{
     param (
         [string]$TokenType = 'azure-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = "azure_prod.pem", # Desired Token file name.
+        [string]$TokenFilename = 'azure_prod.pem', # Desired Token file name.
+        [string]$ConfigFilename = 'azure_id_config', # Desired Azure config file name.
         [string]$TargetDirectory = "c:\azure_directory" # Local location to drop the token into.
     )
 
     $OutputFileName = "$TargetDirectory\$TokenFilename"
+    $OutputConfigFileName = "$TargetDirectory\$ConfigFilename"
 
     If ((Test-Path $OutputFileName)) {
         Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
@@ -182,18 +184,20 @@ function Drop-Token_Azure{
     }
     Else {
         $TokenID = $($CreateResult).canarytoken.canarytoken
+        $AzureTokenConfig = $($CreateResult).canarytoken.renders."az-id-config"
     }
     
     Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
-    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+    $AzureTokenConfig | Out-File -FilePath $OutputConfigFileName
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName' and '$OutputConfigFilename'. Complete on $env:computername"
 }
 
-Drop-Token_Azure
+Deploy-Token_Azure
 
 ####################################################################################################################################################################################################################################
 
-#Drops a Word Token
-function Drop-Token_Word{
+# Drops a Word Token
+function Deploy-Token_Word{
     param (
         [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "secrets.docx", # Desired Token file name.
@@ -232,12 +236,12 @@ function Drop-Token_Word{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_Word
+Deploy-Token_Word
 
 ####################################################################################################################################################################################################################################
 
 #Drops a Word Macro Token
-function Drop-Token_Word_Macro{
+function Deploy-Token_Word_Macro{
     param (
         [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "secrets.docm", # Desired Token file name.
@@ -276,12 +280,12 @@ function Drop-Token_Word_Macro{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_Word_Macro
+Deploy-Token_Word_Macro
 
 ####################################################################################################################################################################################################################################
 
 #Drops an Excel Token
-function Drop-Token_Excel{
+function Deploy-Token_Excel{
     param (
         [string]$TokenType = 'doc-msexcel' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "excel.xlsx", # Desired Token file name.
@@ -320,12 +324,12 @@ function Drop-Token_Excel{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_Excel
+Deploy-Token_Excel
 
 ####################################################################################################################################################################################################################################
 
 #Drops an Excel-Macro Token
-function Drop-Token_Macro{
+function Deploy-Token_Macro{
     param (
         [string]$TokenType = 'msexcel-macro' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "excel-macro.xlsm", # Desired Token file name.
@@ -364,12 +368,12 @@ function Drop-Token_Macro{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_Macro
+Deploy-Token_Macro
 
 ####################################################################################################################################################################################################################################
 
 #Drops a PDF Token
-function Drop-Token_PDF{
+function Deploy-Token_PDF{
     param (
         [string]$TokenType = 'pdf-acrobat-reader' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "PDF_Doc.pdf", # Desired Token file name.
@@ -409,12 +413,12 @@ function Drop-Token_PDF{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_PDF
+Deploy-Token_PDF
 
 ####################################################################################################################################################################################################################################
 
 #Drops a QR-Code Token
-function Drop-Token_QR{
+function Deploy-Token_QR{
     param (
         [string]$TokenType = 'qr-code' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "QR_Code.png", # Desired Token file name.
@@ -454,13 +458,13 @@ function Drop-Token_QR{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Drop-Token_QR
+Deploy-Token_QR
 
 ####################################################################################################################################################################################################################################
 
 # Drops a sensitive command Token
 # Note : In order for the registery file to be imported, the script needs to be run as an Administrator
-function Drop-Token_Sensitive_command{
+function Deploy-Token_Sensitive_command{
     param (
         [string]$TokenType = 'sensitive-cmd' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "sensitive_cmd.reg", # Desired Token file name.
@@ -506,7 +510,7 @@ function Drop-Token_Sensitive_command{
     Remove-Item $TargetDirectory 
 }
 
-Drop-Token_Sensitive_command
+Deploy-Token_Sensitive_command
 
  ####################################################################################################################################################################################################################################
 
@@ -520,7 +524,7 @@ cmdkey /add:02-FINANCE-02 /user:administrator /pass:super-secret123
 # Create RDP Shortcut pointing towards a Canary
 # Note : this should be accessible from your Tokened Host.
 
-function Drop-RDP_Shortcut{
+function Deploy-RDP_Shortcut{
     param (
         [string]$CanaryIP = '192.168.1.1' , # Enter your Canaries IP Address.
         [string]$ShortcutFilename = "SRV01.lnk", # Enter your preferred shortcut name, usually your Canaries Hostname.
@@ -549,8 +553,8 @@ function Drop-RDP_Shortcut{
     $lnk.Save()
 }
 
-Drop-RDP_Shortcut
+Deploy-RDP_Shortcut
 
 ####################################################################################################################################################################################################################################
 
-Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete" 
+Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete"
