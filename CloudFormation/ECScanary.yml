@@ -1,0 +1,145 @@
+Resources:
+# Define VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: '10.0.0.0/16'
+# Define VPC Subnet
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 0
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: '10.0.0.0/16'
+      MapPublicIpOnLaunch: true
+# Define VPC Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  GatewayAttachement:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref 'VPC'
+      InternetGatewayId: !Ref 'InternetGateway'
+# Define Routes
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachement
+    Properties:
+      RouteTableId: !Ref 'PublicRouteTable'
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+# Define Cluster
+  Cluster:
+    Type: AWS::ECS::Cluster
+# Define Logging
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: canary-ecs-log-group
+# Define Canary Container Security Group
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ContainerSecurityGroup
+      GroupDescription: Security group for Canary
+      VpcId: !Ref 'VPC'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+# Define Secret for Canary Docker Private Repo
+  PrivateDockerRepoSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: PrivateDockerRepoSecret
+      SecretString: '{ "username" : "thinkstcanaryreadonly" , "password" : "dckr_pat_ABC123" }' # Found in Canary Console
+# Define Policy allowing access to Docker secret
+  PrivateDockerRepoIAMPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Action:
+                    - "secretsmanager:GetSecretValue"
+                    - "secretsmanager:DescribeSecret"
+                  Resource: !Ref PrivateDockerRepoSecret
+                  Effect: "Allow"
+# Define Execution Role for Container Task
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: canary-ecs-role # Preffered Role Name
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - !Ref PrivateDockerRepoIAMPolicy
+# Define Container Task
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: canary-ecs-task # Preffered task name
+      Cpu: 1024
+      Memory: 2048
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: canary-ecs-container
+          Image: "thinkstcanary/dockercanary@sha256:688d91456ddf845ff5e4348db15802cc256c144ef3f25da8f7947c5a144ecbb7" # Provided in your Docker deploy settings https://<DomainHash>.canary.tools/nest/add-canary/docker
+          RepositoryCredentials:
+            CredentialsParameter: !Ref PrivateDockerRepoSecret
+          PortMappings:
+            - ContainerPort: 22
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+          Environment:
+            - Name: LISTEN_DOMAIN
+              Value: 'ABC123.cnr.io' # Provided in your Docker deploy settings https://<DomainHash>.canary.tools/nest/add-canary/docker
+            - Name: CONSOLE_PUBLIC_KEY
+              Value: ABC123 # Provided in your Docker deploy settings https://<DomainHash>.canary.tools/nest/add-canary/docker
+            - Name: AUTOCOMMISSION_TOKEN
+              Value: ABC123 # Provided in your Docker deploy settings https://<DomainHash>.canary.tools/nest/add-canary/docker
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+# Define Container Service
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: canary-ecs-service # Preffered service name
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED # DISABLE FOR PRODUCTION USE
+          Subnets:
+            - !Ref PublicSubnet
+          SecurityGroups:
+            - !GetAtt ContainerSecurityGroup.GroupId
