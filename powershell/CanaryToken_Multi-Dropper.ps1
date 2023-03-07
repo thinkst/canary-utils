@@ -36,73 +36,6 @@ else {
 
 ####################################################################################################################################################################################################################################
 
-# Drops a Windows Folder Token
-function Deploy-Token_Folder{
-    param (
-        [string]$TokenType = 'windows-dir', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TargetFolderName = "Folder_Token", # Desired Token Folder name.
-        [string]$TargetDirectory = "c:\folder_directory", # Local location to drop the token into.
-        [string]$TempZipFilename = "token-folder.zip" 
-    )
-
-    $OutputFileName = "$TargetDirectory\$TargetFolderName"
-
-    If ((Test-Path $OutputFileName)) {
-        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
-        return
-    }
-
-    If (!(Test-Path $TargetDirectory)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
-    }
-    
-    $PostData = @{
-        factory_auth = "$FactoryAuth"
-        kind       = "$TokenType"
-        flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
-    }
-    
-    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
-    $Result = $CreateResult.result
-    If ($Result -ne 'success') {
-        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
-        Exit
-    }
-    Else {
-        $TokenID = $($CreateResult).canarytoken.canarytoken
-    }
-
-#   If the Token does not trigger, this may be due to EnableShellShortcutIconRemotePath being disabled, uncommenting the below section will try set the registry key. This means the script needs be run as administrator.
-#    try {
-#        Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "EnableShellShortcutIconRemotePath" -ErrorAction Stop
-#    }
-#    catch [System.Management.Automation.ItemNotFoundException] {
-#        Write-Host -ForegroundColor Green "[*] Registry Key: EnableShellShortcutIconRemotePath, not set. Configuring...."
-#        
-#        try {
-#            New-Item –Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\" –Name Explorer -ErrorAction Stop
-#            Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer' -Name 'EnableShellShortcutIconRemotePath' -Value 1 -Type DWord -Force
-#        }
-#        catch [System.Security.SecurityException] {
-#        Write-Host -ForegroundColor Green "[!] Error: Cannot set registry key, Are we running as administrator?"
-#        Write-Host -ForegroundColor Green "[*] Deploying Token Anyway..."
-#        }
-#    }
-
-    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$TargetDirectory\$TempZipFilename"
-    Expand-Archive $TargetDirectory\$TempZipFilename -DestinationPath $TargetDirectory\
-    Remove-item $TargetDirectory\$TempZipFilename
-    Rename-Item "$TargetDirectory\My Documents" "$TargetDirectory\$TargetFolderName"
-    $attrib = Get-ChildItem $TargetDirectory\ -Recurse | foreach{$_.Attributes = 'System'}
-    
-    Write-Host -ForegroundColor Green "[*] Token Script for: '$TargetDirectory\$TargetFolderName'. Complete on $env:computername"
-}
-
-Deploy-Token_Folder
-
-####################################################################################################################################################################################################################################
-
 #Drops an AWS API Token
 function Deploy-Token_AWS{
     param (
@@ -196,12 +129,12 @@ Deploy-Token_Azure
 
 ####################################################################################################################################################################################################################################
 
-# Drops a Word Token
-function Deploy-Token_Word{
+# Drops a DNS Token as a batch script.
+function Deploy-Token_DNS{
     param (
-        [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = "secrets.docx", # Desired Token file name.
-        [string]$TargetDirectory = "c:\word_directory" # Local location to drop the token into.
+        [string]$TokenType = 'dns', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "runme.bat", # Desired Token file name.
+        [string]$TargetDirectory = "c:\dns_directory" # Local location to drop the token into.
     )
 
     $OutputFileName = "$TargetDirectory\$TokenFilename"
@@ -229,58 +162,16 @@ function Deploy-Token_Word{
         Exit
     }
     Else {
-        $TokenID = $($CreateResult).canarytoken.canarytoken
+        $Tokenhostname = $($CreateResult).canarytoken.hostname
     }
     
-    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+    $Scriptcontents = "@echo off`nnslookup $Tokenhostname`npause"
+
+    Set-Content -Path $OutputFileName -Value $Scriptcontents
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Deploy-Token_Word
-
-####################################################################################################################################################################################################################################
-
-#Drops a Word Macro Token
-function Deploy-Token_Word_Macro{
-    param (
-        [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = "secrets.docm", # Desired Token file name.
-        [string]$TargetDirectory = "c:\word_macro_directory" # Local location to drop the token into.
-    )
-
-    $OutputFileName = "$TargetDirectory\$TokenFilename"
-
-    If ((Test-Path $OutputFileName)) {
-        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
-        return
-    }
-
-    If (!(Test-Path $TargetDirectory)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
-    }
-    
-    $PostData = @{
-        factory_auth = "$FactoryAuth"
-        kind       = "$TokenType"
-        flock_id = "$FlockID"
-        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
-    }
-    
-    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
-    $Result = $CreateResult.result
-    If ($Result -ne 'success') {
-        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
-        Exit
-    }
-    Else {
-        $TokenID = $($CreateResult).canarytoken.canarytoken
-    }
-    
-    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
-    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
-}
-
-Deploy-Token_Word_Macro
+Deploy-Token_DNS
 
 ####################################################################################################################################################################################################################################
 
@@ -329,7 +220,7 @@ Deploy-Token_Excel
 ####################################################################################################################################################################################################################################
 
 #Drops an Excel-Macro Token
-function Deploy-Token_Macro{
+function Deploy-Token_Excel_Macro{
     param (
         [string]$TokenType = 'msexcel-macro' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = "excel-macro.xlsm", # Desired Token file name.
@@ -368,7 +259,74 @@ function Deploy-Token_Macro{
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 }
 
-Deploy-Token_Macro
+Deploy-Token_Excel_Macro
+
+####################################################################################################################################################################################################################################
+
+# Drops a Windows Folder Token
+function Deploy-Token_Folder{
+    param (
+        [string]$TokenType = 'windows-dir', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TargetFolderName = "Folder_Token", # Desired Token Folder name.
+        [string]$TargetDirectory = "c:\folder_directory", # Local location to drop the token into.
+        [string]$TempZipFilename = "token-folder.zip" 
+    )
+
+    $OutputFileName = "$TargetDirectory\$TargetFolderName"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        flock_id = "$FlockID"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenID = $($CreateResult).canarytoken.canarytoken
+    }
+
+#   If the Token does not trigger, this may be due to EnableShellShortcutIconRemotePath being disabled, uncommenting the below section will try set the registry key. This means the script needs be run as administrator.
+#    try {
+#        Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "EnableShellShortcutIconRemotePath" -ErrorAction Stop
+#    }
+#    catch [System.Management.Automation.ItemNotFoundException] {
+#        Write-Host -ForegroundColor Green "[*] Registry Key: EnableShellShortcutIconRemotePath, not set. Configuring...."
+#        
+#        try {
+#            New-Item –Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\" –Name Explorer -ErrorAction Stop
+#            Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer' -Name 'EnableShellShortcutIconRemotePath' -Value 1 -Type DWord -Force
+#        }
+#        catch [System.Security.SecurityException] {
+#        Write-Host -ForegroundColor Green "[!] Error: Cannot set registry key, Are we running as administrator?"
+#        Write-Host -ForegroundColor Green "[*] Deploying Token Anyway..."
+#        }
+#    }
+
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$TargetDirectory\$TempZipFilename"
+    Expand-Archive $TargetDirectory\$TempZipFilename -DestinationPath $TargetDirectory\
+    Remove-item $TargetDirectory\$TempZipFilename
+    Rename-Item "$TargetDirectory\My Documents" "$TargetDirectory\$TargetFolderName"
+    $attrib = Get-ChildItem $TargetDirectory\ -Recurse | foreach{$_.Attributes = 'System'}
+    
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$TargetDirectory\$TargetFolderName'. Complete on $env:computername"
+}
+
+Deploy-Token_Folder
 
 ####################################################################################################################################################################################################################################
 
@@ -512,12 +470,141 @@ function Deploy-Token_Sensitive_command{
 
 Deploy-Token_Sensitive_command
 
- ####################################################################################################################################################################################################################################
+####################################################################################################################################################################################################################################
 
-# Adding generic creds to cmdkey
-# Reference : https://blog.thinkst.com/2021/06/rdp-cmdkey-canary-and-thee_10.html
+# Drops a Web Bug as a Shortcut.
+function Deploy-Token_Web{
+    param (
+        [string]$TokenType = 'http', # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "example.com.url", # Desired Token file name.
+        [string]$TargetDirectory = "c:\web_bug_directory" # Local location to drop the token into.
+    )
 
-cmdkey /add:02-FINANCE-02 /user:administrator /pass:super-secret123
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        flock_id = "$FlockID"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenURL = $($CreateResult).canarytoken.url
+    }
+    
+    $wshshell = New-Object -ComObject WScript.Shell
+    $shortcut = $wshshell.CreateShortcut($OutputFileName)
+    $shortcut.TargetPath = $TokenURL
+    $shortcut.Save()
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Deploy-Token_Web
+
+####################################################################################################################################################################################################################################
+
+# Drops a Word Token
+function Deploy-Token_Word{
+    param (
+        [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "secrets.docx", # Desired Token file name.
+        [string]$TargetDirectory = "c:\word_directory" # Local location to drop the token into.
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        flock_id = "$FlockID"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenID = $($CreateResult).canarytoken.canarytoken
+    }
+    
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Deploy-Token_Word
+
+####################################################################################################################################################################################################################################
+
+#Drops a Word Macro Token
+function Deploy-Token_Word_Macro{
+    param (
+        [string]$TokenType = 'doc-msword' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
+        [string]$TokenFilename = "secrets.docm", # Desired Token file name.
+        [string]$TargetDirectory = "c:\word_macro_directory" # Local location to drop the token into.
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $PostData = @{
+        factory_auth = "$FactoryAuth"
+        kind       = "$TokenType"
+        flock_id = "$FlockID"
+        memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+    }
+    
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+    $Result = $CreateResult.result
+    If ($Result -ne 'success') {
+        Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed."
+        Exit
+    }
+    Else {
+        $TokenID = $($CreateResult).canarytoken.canarytoken
+    }
+    
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Deploy-Token_Word_Macro
 
 ####################################################################################################################################################################################################################################
 
@@ -554,6 +641,11 @@ function Deploy-RDP_Shortcut{
 }
 
 Deploy-RDP_Shortcut
+
+# Adding generic creds to cmdkey
+# Reference : https://blog.thinkst.com/2021/06/rdp-cmdkey-canary-and-thee_10.html
+
+cmdkey /add:02-FINANCE-02 /user:administrator /pass:super-secret123
 
 ####################################################################################################################################################################################################################################
 
