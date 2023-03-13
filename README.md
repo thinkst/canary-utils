@@ -132,6 +132,11 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Purpose:** A sample for mass deploying tokens in parallel across Active Directory.  
 **Usage:** `deploy_tokens.ps1`
 
+### find_and_delete_tokens.ps1
+**Author:** Thinkst (Gareth)  
+**Purpose:** Quick and easily search for Tokens then delete them.  
+**Usage:** ./find_and_delete_tokens.ps1 -domain ABC123 -auth_token DEF456 -flock flock:default -clear_incidents $True -kind http -search_string host1
+
 ## Python
 
 ### canaryconsole.py
