@@ -8,6 +8,7 @@ Set-StrictMode -Version 2.0
 $PostData = @{
     auth_token = "$APIKEY"
     memo       = "$([System.Net.Dns]::GetHostName()) - Factory Auth Key"
+    flock_id    = "flock:default"
 }
 
 $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/create_factory" -Body $PostData
