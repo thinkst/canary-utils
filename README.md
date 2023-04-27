@@ -160,7 +160,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
 
 ### list_and_delete_factory_auth.py
-**Author:** Customer (Taiga Walker)
+**Author:** Customer (Taiga Walker)  
 **Purpose** Simply edit the Domain and ApiKey variables to match your Console. Running the script will delete all factory auth strings from your Console.
 **Usage:** `python3 list_and_delete_factory_auth.py`
 
