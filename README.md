@@ -134,7 +134,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 ### find_and_delete_tokens.ps1
 **Author:** Thinkst (Gareth)  
-**Purpose:** Quick and easily search for Tokens then delete them.  
+**Purpose:** Quick and easy search for Tokens, then delete them.  
 **Usage:** ./find_and_delete_tokens.ps1 -domain ABC123 -auth_token DEF456 -flock flock:default -clear_incidents $True -kind http -search_string host1
 
 ## Python
@@ -153,6 +153,16 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Author:** Thinkst (Jay)  
 **Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
+
+### delete_tokens.py
+**Author:** Thinkst (Jay)  
+**Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
+**Usage:** `python3 delete_tokens.py <console_url> <api_key>`
+
+### list_and_delete_factory_auth.py
+**Author:** Customer (Taiga Walker)
+**Purpose** Simply edit the Domain and ApiKey variables to match your Console. Running the script will delete all factory auth strings from your Console.
+**Usage:** `python3 list_and_delete_factory_auth.py`
 
 ## Binaries
 
