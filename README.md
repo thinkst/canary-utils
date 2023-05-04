@@ -15,7 +15,7 @@ In general, most of these scripts will need to be edited to add your Canary Cons
 ## Ansible
 
 ### token_multi_dropper.yaml
-**Author:** Thinkst (Gareth)
+**Author:** Thinkst (Gareth)  
 **Purpose** This is an Ansible playbook containing a "deploy Canary Tokens" module to create Tokens on your hosts using the URI module.  
 **Usage:** Edit line 2 with your desired host group, then edit lines 4,5 and 6 with your Console API details as well as desired flock.
 By default the Tokens will be created with generic names however these can be tweaked by setting the "target_directory" and "token_filename" variables.
