@@ -2,15 +2,15 @@ import argparse
 import base64
 import csv
 import json
+import sys
 import time
 from dataclasses import dataclass
 from distutils.util import strtobool
-from typing import Literal
-from typing import Union
-import sys
+from typing import Literal, Union
+
 if sys.version_info < (3, 10):
     print("Please use Python 3.10 or higher")
-    raise SystemExit(1)   
+    raise SystemExit(1)
 try:
     import nacl.public
     import requests
@@ -101,9 +101,7 @@ def encrypt_payload(payload: str, recipient_public_key_b64: str) -> str:
     nonce = nacl.utils.random(nacl.public.Box.NONCE_SIZE)
     box = nacl.public.Box(
         sender_key_pair,
-        nacl.public.PublicKey(
-            recipient_public_key
-        ),
+        nacl.public.PublicKey(recipient_public_key),
     )
 
     plaintext = payload.encode("utf-8")
@@ -206,12 +204,14 @@ def generate_file(file_path):
     with open(file_path, "w") as fp:
         fp.write(RemoteADInfo.get_csv_header() + "\n")
 
+
 import textwrap
+
 if __name__ == "__main__":
     console = Console()
     parser = argparse.ArgumentParser(
         usage=textwrap.dedent(
-    """
+            """
     To join a single canary to a single domain:
     python %(prog)s --console <console_hash> --auth-token <auth_token> cli_args --node-ids <node_id> --username <username> --password <password> --domain <domain>
 
@@ -223,11 +223,15 @@ if __name__ == "__main__":
     python %(prog)s from_file --generate-file <file_path>
     2) Populate the CSV file with the details of the canaries to join, AD domain, username and password and then run:
     python %(prog)s --console <console_hash> --auth-token <auth_token> from_file --file-path <file_path>
-    """))
+    """
+        )
+    )
 
     parser.add_argument("--verbose", help="Verbose output", action="store_true")
     subparsers = parser.add_subparsers(dest="inputs_from", required=True)
-    to_file_parser = subparsers.add_parser("to_file", help="creates a CSV file with the needed headers")
+    to_file_parser = subparsers.add_parser(
+        "to_file", help="creates a CSV file with the needed headers"
+    )
     to_file_parser.add_argument(
         "--generate-file", help="Generate CSV with required headers", required=False
     )
@@ -261,8 +265,9 @@ if __name__ == "__main__":
         required=True,
     )
     cli_parser.add_argument(
-        "--domain", help="Domain to join", 
-        required=True, 
+        "--domain",
+        help="Domain to join",
+        required=True,
     )
     file_args = subparsers.add_parser(
         "from_file", help="Pass arguments from --file-path"
@@ -280,17 +285,19 @@ if __name__ == "__main__":
     file_args.add_argument(
         "--file-path", help="Path to CSV file with arguments", required=True
     )
-    
+
     args = parser.parse_args()
     if args.inputs_from == "to_file":
         if args.generate_file:
             generate_file(args.generate_file)
             console.print(
-                textwrap.dedent(f"""
+                textwrap.dedent(
+                    f"""
                 Populate {args.generate_file} with the details. 
                 Only `node_id,user,password,smb__domain` are required for the rest sensible defaults are used. 
                 You can specify them as needed as one would do using your Canary Console.
-                Then run:"""),
+                Then run:"""
+                ),
                 style="bold green",
             )
             console.print(
@@ -300,12 +307,9 @@ if __name__ == "__main__":
             raise SystemExit(0)
 
     elif args.inputs_from == "from_file":
-        info_of_nodes_to_join: list[RemoteADInfo] = get_args_from_file(
-            args.file_path
-        )
+        info_of_nodes_to_join: list[RemoteADInfo] = get_args_from_file(args.file_path)
 
     elif args.inputs_from == "cli_args":
-        
         domains = [args.domain] * len(args.node_ids)
 
         passwords = [args.password] * len(args.node_ids)
@@ -320,12 +324,16 @@ if __name__ == "__main__":
             )
         ]
     else:
-        console.print("Must pass use `to_file` or `from_file` of `cli_args`", style="bold red")
+        console.print(
+            "Must pass use `to_file` or `from_file` of `cli_args`", style="bold red"
+        )
         raise SystemExit(1)
 
     print_table(info_of_nodes_to_join, console=console)
 
-    all_good = Prompt.ask("Confirm this is correct", choices=["Y", "N"], default="Y").upper()
+    all_good = Prompt.ask(
+        "Confirm this is correct", choices=["Y", "N"], default="Y"
+    ).upper()
     if all_good == "N":
         console.print("Exiting", style="bold red")
         raise SystemExit(1)
@@ -368,10 +376,20 @@ if __name__ == "__main__":
             job_id=job_id, auth_token=args.auth_token, console_hash=args.console
         )
         if status is None:
-            console.print(f"Error polling status for {node_ad_join_info.node_id}", style="bold red")
-            console.print(f"Skipping Node: {node_ad_join_info.node_id}", style="bold red")
-            console.print(f"Rerun with python {__file__} --verbose ...", style="bold red")
-            console.print(f"If the problem persists, contact support@canary.tools", style="bold red")
+            console.print(
+                f"Error polling status for {node_ad_join_info.node_id}",
+                style="bold red",
+            )
+            console.print(
+                f"Skipping Node: {node_ad_join_info.node_id}", style="bold red"
+            )
+            console.print(
+                f"Rerun with python {__file__} --verbose ...", style="bold red"
+            )
+            console.print(
+                f"If the problem persists, contact support@canary.tools",
+                style="bold red",
+            )
             continue
         console.print(
             f"Waiting for node {node_ad_join_info.node_id} to join {node_ad_join_info.smb__domain}",
