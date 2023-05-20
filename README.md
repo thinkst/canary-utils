@@ -173,6 +173,17 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Purpose** Simply edit the Domain and ApiKey variables to match your Console. Running the script will delete all factory auth strings from your Console.
 **Usage:** `python3 list_and_delete_factory_auth.py`
 
+### ad_joiner.py
+**Author:** Thinkst (Support)
+
+**Purpose** Automates AD joining Canaries. One or more Canaries to the same domain can be done using the `cli_args` flag. If you want to join a variety of Canaries (`node_ids`) each to `domains` use the `to_file/from_file` flag. Run `python3 ad_joiner.py to_file --generate-file <file_name>.csv` to generate a `.csv` with the headers needed. Then populate that `.csv` and run `python3 ad_joiner.py --console <console_hash> --auth-token <api-key> from_file --file-path`.
+
+
+**Usage:** 
+`python3 ad_joiner.py -h`
+
+`python3 ad_joiner.py from_file -h` and `python3 ad_joiner.py cli_args -h`
+
 ## Binaries
 
 ### CanaryDeleter
