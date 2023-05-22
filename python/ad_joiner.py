@@ -3,10 +3,14 @@ import base64
 import csv
 import json
 import sys
+import textwrap
 import time
 from dataclasses import dataclass
 from distutils.util import strtobool
+from io import StringIO
 from typing import Literal, Union
+
+from rich.markdown import Markdown
 
 if sys.version_info < (3, 10):
     print("Please use Python 3.10 or higher")
@@ -112,8 +116,25 @@ def encrypt_payload(payload: str, recipient_public_key_b64: str) -> str:
     return base64.b64encode(crypted)
 
 
+def is_smb_enabeled(settings: dict) -> bool:
+    if settings is None:
+        console.print("Failed to get Canary settings. Skipping", style="bold red")
+        return False
+    return settings["smb.enabled"]
+
+
+def is_doh_enabled(settings: dict) -> bool:
+    if settings is None:
+        console.print("Failed to get Canary settings. Skipping", style="bold red")
+        return False
+    return settings["doh.enabled"]
+
+
 def is_bird_ad_joined(settings: dict) -> bool:
-    return settings["smb.mode"] == "domain" and settings["smd.enabled"] == True
+    if settings is None:
+        console.print("Failed to get Canary settings. Skipping", style="bold red")
+        return False
+    return settings["smb.mode"] == "domain" and settings["smb.enabled"]
 
 
 def get_canary_settings(console_hash: str, node_id: str, auth_token: str) -> dict:
@@ -124,7 +145,10 @@ def get_canary_settings(console_hash: str, node_id: str, auth_token: str) -> dic
         resp.raise_for_status()
         return resp.json()["settings"]
     except Exception:
-        console.print(f"Failed to get Canary settings", style="bold red")
+        console.print(
+            f"Failed to get Canary settings for {node_id}. Use python {__file__} --verbose for details.",
+            style="bold red",
+        )
         if args.verbose:
             console.print_exception()
         return None
@@ -205,27 +229,68 @@ def generate_file(file_path):
         fp.write(RemoteADInfo.get_csv_header() + "\n")
 
 
-import textwrap
+usage_message_markdown = Markdown(
+    textwrap.dedent(
+        """
+# Usage
+## CLI Arguments:
+
+**To join a single canary to a single domain:**
+
+```
+python ad_join.py  cli_args --console <console_hash>        \\
+                            --auth-token <auth_token>       \\
+                            --node-ids <node_id>            \\
+                            --username <username>           \\
+                            --password '<password>'         \\
+                            --domain <domain>
+```
+
+**To join multiple canaries to a single domain:**
+
+```
+python ad_joiner.py cli_args --console <console_hash>                \\
+                             --auth-token <auth_token>               \\
+                             --node-ids <node_id> <node_id> <...>    \\
+                             --username <username>                   \\
+                             --password '<password>'                 \\
+                             --domain <domain>
+```
+
+## From File:
+**To join multiple canaries each to a potentially different domain use the `to_file` / `from_file` options:**
+
+__To Generate a CSV file with the required headers:__
+```
+python ad_joiner.py to_file --file-path <file_path>
+```
+__Once populated with the details of the canaries to join and AD domain then run:__
+```
+python ad_joiner.py from_file --console <console_hash>                \\
+                              --auth-token <auth_token>               \\
+                              --file-path <file_path>
+```
+
+**Degguging:**
+To get verbose output add `--verbose` as the first cli argument.
+```
+python ad_joiner,py --verbose ...
+```
+"""
+    )
+)
+
+
+def get_usage_message() -> str:
+    console = Console()
+    usage_message = StringIO()
+    console.print(usage_message_markdown)
+    return usage_message.getvalue()
+
 
 if __name__ == "__main__":
     console = Console()
-    parser = argparse.ArgumentParser(
-        usage=textwrap.dedent(
-            """
-    To join a single canary to a single domain:
-    python %(prog)s --console <console_hash> --auth-token <auth_token> cli_args --node-ids <node_id> --username <username> --password <password> --domain <domain>
-
-    To join multiple canaries to a single domain:
-    python %(prog)s --console <console_hash> --auth-token <auth_token> cli_args --node-ids <node_id> <node_id> --username <username> --password <password> --domain <domain>
-    
-    To join multiple canaries each to a potentially different domain use the from_file option:
-    1) Generate a CSV file with the required headers:
-    python %(prog)s from_file --generate-file <file_path>
-    2) Populate the CSV file with the details of the canaries to join, AD domain, username and password and then run:
-    python %(prog)s --console <console_hash> --auth-token <auth_token> from_file --file-path <file_path>
-    """
-        )
-    )
+    parser = argparse.ArgumentParser(usage=get_usage_message())
 
     parser.add_argument("--verbose", help="Verbose output", action="store_true")
     subparsers = parser.add_subparsers(dest="inputs_from", required=True)
@@ -233,7 +298,9 @@ if __name__ == "__main__":
         "to_file", help="creates a CSV file with the needed headers"
     )
     to_file_parser.add_argument(
-        "--generate-file", help="Generate CSV with required headers", required=False
+        "--file-path",
+        help="Generate CSV with required headers",
+        default="ad_join_canary_details.csv",
     )
     cli_parser = subparsers.add_parser(
         "cli_args", help="Pass arguments from the command line"
@@ -288,12 +355,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.inputs_from == "to_file":
-        if args.generate_file:
-            generate_file(args.generate_file)
+        if args.file_path:
+            generate_file(args.file_path)
             console.print(
                 textwrap.dedent(
                     f"""
-                Populate {args.generate_file} with the details. 
+                Populate {args.file_path} with the details. 
                 Only `node_id,user,password,smb__domain` are required for the rest sensible defaults are used. 
                 You can specify them as needed as one would do using your Canary Console.
                 Then run:"""
@@ -301,7 +368,7 @@ if __name__ == "__main__":
                 style="bold green",
             )
             console.print(
-                f"python {__file__} from_file --file-path {args.generate_file}",
+                f"python {__file__} from_file --file-path {args.file_path}",
                 style="bold green",
             )
             raise SystemExit(0)
@@ -337,12 +404,55 @@ if __name__ == "__main__":
     if all_good == "N":
         console.print("Exiting", style="bold red")
         raise SystemExit(1)
+    canaries_to_enable_smb = []
+    canaries_to_disable_doh = []
     for node_ad_join_info in info_of_nodes_to_join:
+        console.print("=" * console.width)
         settings = get_canary_settings(
             console_hash=args.console,
             node_id=node_ad_join_info.node_id,
             auth_token=args.auth_token,
         )
+        if settings is None:
+            console.print(
+                f"Failed to get Canary settings. Skipping Node ID: {node_ad_join_info.node_id}",
+                style="bold red",
+            )
+            continue
+        if is_doh_enabled(settings):
+            canaries_to_disable_doh.append(node_ad_join_info.node_id)
+            console.print(
+                f"Node {node_ad_join_info.node_id} has DoH enabled. Cannot join AD until DoH is disabled. Skipping AD join"
+            )
+            node_link = Markdown(
+                textwrap.dedent(
+                    f"""
+            Go to your [Console](https://{args.console}.canary.tools/nest/canary/{node_ad_join_info.node_id}) and disable DoH.
+            """
+                )
+            )
+            console.print(
+                node_link,
+                style="bold red",
+            )
+            continue
+        if not is_smb_enabeled(settings):
+            canaries_to_enable_smb.append(node_ad_join_info.node_id)
+            console.print(
+                f"Node {node_ad_join_info.node_id} does not have SMB enabled. Skipping AD join",
+            )
+            node_link = Markdown(
+                textwrap.dedent(
+                    f"""
+            Go to your [Console](https://{args.console}.canary.tools/nest/canary/{node_ad_join_info.node_id}) and enable Windows File Share.
+            """
+                )
+            )
+            console.print(
+                node_link,
+                style="bold red",
+            )
+            continue
         if is_bird_ad_joined(settings):
             console.print(
                 f"Node {node_ad_join_info.node_id} is already joined",
@@ -411,4 +521,42 @@ if __name__ == "__main__":
                 f"Node {node_ad_join_info.node_id} failed to join {node_ad_join_info.smb__domain}",
                 style="bold red",
             )
-            console.print(f"Error: {status['data']['exception']}", style="bold red")
+            try:
+                console.print(f"Error: {status['data']['exception']}", style="bold red")
+            except KeyError:
+                console.print(
+                    f"An Error occured. Skipping {node_ad_join_info.node_id}",
+                    style="bold red",
+                )
+                console.print(
+                    f"Rerun with python {__file__} --verbose ...", style="bold red"
+                )
+                if args.verbose:
+                    console.print_exception()
+
+    console.print("=" * console.width)
+    if canaries_to_enable_smb:
+        table = Table(
+            title="The following Canaries must have SMB enabled before they can be joined."
+        )
+        table_fields = ["Node ID", "Link to Device Page (click to open)"]
+        for field in table_fields:
+            table.add_column(field, style="cyan", no_wrap=True)
+        for node_id in canaries_to_enable_smb:
+            table.add_row(
+                node_id, f"https://{args.console}.canary.tools/nest/canary/{node_id}"
+            )
+        console.print(table)
+
+    if canaries_to_disable_doh:
+        table = Table(
+            title="The following Canaries must have DoH disabled before they can be joined."
+        )
+        table_fields = ["Node ID", "Link to Device Page (click to open)"]
+        for field in table_fields:
+            table.add_column(field, style="cyan", no_wrap=True)
+        for node_id in canaries_to_disable_doh:
+            table.add_row(
+                node_id, f"https://{args.console}.canary.tools/nest/canary/{node_id}"
+            )
+        console.print(table)
