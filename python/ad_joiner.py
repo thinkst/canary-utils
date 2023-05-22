@@ -531,8 +531,7 @@ if __name__ == "__main__":
                 console.print(
                     f"Rerun with python {__file__} --verbose ...", style="bold red"
                 )
-                if args.verbose:
-                    console.print_exception()
+                console.print_json(status)
 
     console.print("=" * console.width)
     if canaries_to_enable_smb:
