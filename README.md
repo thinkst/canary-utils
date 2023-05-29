@@ -178,11 +178,18 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 **Purpose** Automates AD joining Canaries. One or more Canaries to the same domain can be done using the `cli_args` flag. If you want to join a variety of Canaries (`node_ids`) each to `domains` use the `to_file/from_file` flag. Run `python3 ad_joiner.py to_file --generate-file <file_name>.csv` to generate a `.csv` with the headers needed. Then populate that `.csv` and run `python3 ad_joiner.py --console <console_hash> --auth-token <api-key> from_file --file-path`.
 
-
 **Usage:** 
 `python3 ad_joiner.py -h`
 
 `python3 ad_joiner.py from_file -h` and `python3 ad_joiner.py cli_args -h`
+
+### edit_bird_mac.py
+
+**Author:** Thinkst (Gareth)
+
+**Purpose** Simply tweak the MAC prefix on your Canary to a custom one not found in the list.
+
+**Usage:** `python3 edit_bird_mac.py [-h] -domain DOMAIN -apikey APIKEY -nodeid NODEID -macprefix MACPREFIX`
 
 ## Binaries
 
