@@ -44,7 +44,7 @@ ForEach ($TargetHostname in $Targets) {
         kind = "doc-msword"
         memo = "$TokenName"
     }
-    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/create" -Body $PostData
+    $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/factory/create" -Body $PostData
     $Result = $CreateResult.result
     If ($Result -ne 'success') {
         Write-Host "Creation of $TokenName failed."
