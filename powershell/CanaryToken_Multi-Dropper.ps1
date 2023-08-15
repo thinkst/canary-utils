@@ -2,7 +2,6 @@
 Param (
     [string]$Domain = 'ABC123.canary.tools', # Enter your Console domain between the . e.g. 1234abc.canary.tools
     [string]$FactoryAuth = 'ABC123', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-    [string]$FlockID = 'flock:default', # Enter desired flock to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
     [string]$intro = 'ON'
     )
 
@@ -58,7 +57,6 @@ function Deploy-Token_AWS{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -104,7 +102,6 @@ function Deploy-Token_Azure{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         azure_id_cert_file_name = "$TokenFilename"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
@@ -151,7 +148,6 @@ function Deploy-Token_DNS{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -197,7 +193,6 @@ function Deploy-Token_Excel{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -241,7 +236,6 @@ function Deploy-Token_Excel_Macro{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -286,7 +280,6 @@ function Deploy-Token_Folder{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -353,7 +346,6 @@ function Deploy-Token_PDF{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -398,7 +390,6 @@ function Deploy-Token_QR{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -446,7 +437,6 @@ function Deploy-Token_Sensitive_command{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
         process_name = "$WatchedProcess"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $WatchedProcess"
     }
     
@@ -463,7 +453,7 @@ function Deploy-Token_Sensitive_command{
     Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 
-    reg import $OutputFileName
+    Start-Process reg -ArgumentList "import $OutputFileName"
     Remove-Item $OutputFileName
     Remove-Item $TargetDirectory 
 }
@@ -494,7 +484,6 @@ function Deploy-Token_Web{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -542,7 +531,6 @@ function Deploy-Token_Word{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
@@ -586,7 +574,6 @@ function Deploy-Token_Word_Macro{
     $PostData = @{
         factory_auth = "$FactoryAuth"
         kind       = "$TokenType"
-        flock_id = "$FlockID"
         memo       = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
     }
     
