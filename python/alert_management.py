@@ -42,7 +42,8 @@ def get_args() -> tuple:
         '-d',
         '--domain',
         help="Client domain to append as <your_domain>.canary.tools URL.",
-        type=str
+        type=str,
+        required=True
     )
 
     parser.add_argument(
@@ -50,6 +51,14 @@ def get_args() -> tuple:
         '--flockid',
         help="(Optional) Get all incidents for a specific flock_id.",
         type=str
+    )
+
+    parser.add_argument(
+        '-s',
+        '--since',
+        help="(Optional) Only return incidents whose updated_id is greater than this integer. The returned feed "
+             "includes a max_updated_id field if the incident list has entries.",
+        type=int
     )
 
     parser.add_argument(
@@ -86,7 +95,7 @@ def get_args() -> tuple:
 def write_to_json_file(data: dict, output_file: str) -> NoReturn:
     try:
         with open(output_file, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False)
+            json.dump(data, file, ensure_ascii=False, indent=2)
     except Exception as err:
         print(err)
 
@@ -100,15 +109,15 @@ if __name__ == '__main__':
     an argument when executing the program.
     """
     if CANARY_API_AUTH_TOKEN is None:
-        print(f"Please set CANARY_API_AUTH_TOKEN enviroment variable")
+        print('Please set CANARY_API_AUTH_TOKEN enviroment variable')
         exit(1)
+
+    endpoint = 'all'
 
     if args.acknowledged == 'true':
         endpoint = 'acknowledged'
     elif args.acknowledged == 'false':
         endpoint = 'unacknowledged'
-    else:
-        endpoint = 'all'
 
     url = f'https://{args.domain}.canary.tools/api/v1/incidents/{endpoint}'
 
@@ -120,18 +129,21 @@ if __name__ == '__main__':
     if args.limit:
         payload['limit'] = args.limit
 
+    if args.since:
+        payload['incidents_since'] = args.since
+
     try:
         response = requests.get(url, params=payload)
+
         if response.status_code == 200:
             response = response.json()
             incidents = response.get('incidents')
 
             if args.limit:
+                del payload['limit']
                 next_cursor = response.get('cursor').get('next')
 
                 while next_cursor:
-                    del payload['limit']
-
                     payload['cursor'] = next_cursor
                     response = requests.get(url, params=payload)
 
