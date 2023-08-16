@@ -12,15 +12,6 @@ Happy birding!
 ## Script Descriptions and Usage
 In general, most of these scripts will need to be edited to add your Canary Console URL (in the form of ab1234ef.canary.tools) and your API key, which can be found in the Canary Console settings.
 
-## Ansible
-
-### token_multi_dropper.yaml
-**Author:** Thinkst (Gareth)  
-**Purpose** This is an Ansible playbook containing a "deploy Canary Tokens" module to create Tokens on your hosts using the URI module.  
-**Usage:** Edit line 2 with your desired host group, then edit lines 4,5 and 6 with your Console API details as well as desired flock.
-By default the Tokens will be created with generic names however these can be tweaked by setting the "target_directory" and "token_filename" variables.
-Run with "ansible-playbook token_multi_dropper.yaml"
-
 ## Bash
 
 ### alert_management.sh
@@ -141,12 +132,29 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Purpose:** A sample for mass deploying tokens in parallel across Active Directory.  
 **Usage:** `deploy_tokens.ps1`
 
-### find_and_delete_tokens.ps1
-**Author:** Thinkst (Gareth)  
-**Purpose:** Quick and easy search for Tokens, then delete them.  
-**Usage:** ./find_and_delete_tokens.ps1 -domain ABC123 -auth_token DEF456 -flock flock:default -clear_incidents $True -kind http -search_string host1
-
 ## Python
+
+### alert_management.py
+**Author:** Javier Domínguez Gómez  
+**Purpose:** Manage all incidents by combining multiple filters and being able to paginate automatically if necessary, all in one tool.  
+**Usage:**
+```commandline
+usage: alert_management.py [-h] [-d DOMAIN] [-f FLOCKID] [-a {true,false}] [-o OUTPUTFILE]
+
+Tool to query the Canary All Incidents API Endpoint and mange the response.
+
+options:
+  -h, --help            show this help message and exit
+  -d DOMAIN, --domain DOMAIN
+                        Client domain to append as <your_domain>.canary.tools URL
+  -f FLOCKID, --flockid FLOCKID
+                        (Optional) Get all incidents for a specific flock_id
+  -a {true,false}, --acknowledged {true,false}
+                        (Optional) To filter acknowledged or unacknowledged incidents. Valid values are 'true', 'false'.
+                        If you do not specify this flag you will receive all incidents.
+  -o OUTPUTFILE, --outputfile OUTPUTFILE
+                        (Optional) JSON file to dump the API query response
+```
 
 ### canaryconsole.py
 **Author:** Thinkst (Adrian)  
@@ -162,34 +170,6 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Author:** Thinkst (Jay)  
 **Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
-
-### delete_tokens.py
-**Author:** Thinkst (Jay)  
-**Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
-**Usage:** `python3 delete_tokens.py <console_url> <api_key>`
-
-### list_and_delete_factory_auth.py
-**Author:** Customer (Taiga Walker)  
-**Purpose** Simply edit the Domain and ApiKey variables to match your Console. Running the script will delete all factory auth strings from your Console.
-**Usage:** `python3 list_and_delete_factory_auth.py`
-
-### ad_joiner.py
-**Author:** Thinkst (Support)
-
-**Purpose** Automates AD joining Canaries. One or more Canaries to the same domain can be done using the `cli_args` flag. If you want to join a variety of Canaries (`node_ids`) each to `domains` use the `to_file/from_file` flag. Run `python3 ad_joiner.py to_file --generate-file <file_name>.csv` to generate a `.csv` with the headers needed. Then populate that `.csv` and run `python3 ad_joiner.py --console <console_hash> --auth-token <api-key> from_file --file-path`.
-
-**Usage:** 
-`python3 ad_joiner.py -h`
-
-`python3 ad_joiner.py from_file -h` and `python3 ad_joiner.py cli_args -h`
-
-### edit_bird_mac.py
-
-**Author:** Thinkst (Gareth)
-
-**Purpose** Simply tweak the MAC prefix on your Canary to a custom one not found in the list.
-
-**Usage:** `python3 edit_bird_mac.py [-h] -domain DOMAIN -apikey APIKEY -nodeid NODEID -macprefix MACPREFIX`
 
 ## Binaries
 
