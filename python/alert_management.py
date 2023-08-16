@@ -95,7 +95,7 @@ def get_args() -> tuple:
 def write_to_json_file(data: dict, output_file: str) -> NoReturn:
     try:
         with open(output_file, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=2)
+            json.dump(data, file, ensure_ascii=False)
     except Exception as err:
         print(err)
 
