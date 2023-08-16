@@ -2,21 +2,27 @@
 alert_management.py
 @author: <Javier Domínguez Gómez>
 
-usage: alert_management.py [-h] [-d DOMAIN] [-f FLOCKID] [-a {true,false}] [-o OUTPUTFILE]
+usage: alert_management.py [-h] -d DOMAIN [-f FLOCKID] [-s SINCE] [-a {true,false}] [-l LIMIT] [-o OUTPUTFILE]
 
 Tool to query the Canary All Incidents API Endpoint and mange the response.
 
 options:
   -h, --help            show this help message and exit
   -d DOMAIN, --domain DOMAIN
-                        Client domain to append as <your_domain>.canary.tools URL
+                        Client domain to append as <your_domain>.canary.tools URL.
   -f FLOCKID, --flockid FLOCKID
-                        (Optional) Get all incidents for a specific flock_id
+                        (Optional) Get all incidents for a specific flock_id.
+  -s SINCE, --since SINCE
+                        (Optional) Only return incidents whose updated_id is greater than this integer. The returned
+                        feed includes a max_updated_id field if the incident list has entries.
   -a {true,false}, --acknowledged {true,false}
-                        (Optional) To filter acknowledged or unacknowledged incidents. Valid values are 'true', 'false'.
-                        If you do not specify this flag you will receive all incidents.
+                        (Optional) To filter acknowledged or unacknowledged incidents. Valid values are 'true',
+                        'false'. If you do not specify this flag you will receive all incidents.
+  -l LIMIT, --limit LIMIT
+                        (Optional) Parameter used to initiate cursor pagination. The limit is used to specify the page
+                        sizes returned when iterating through the pages representing all incidents.
   -o OUTPUTFILE, --outputfile OUTPUTFILE
-                        (Optional) JSON file to dump the API query response
+                        (Optional) JSON file to dump the API query response.
 
 Canary All Incidents API Endpoint documented here: https://docs.canary.tools/incidents/queries.html#all-incidents
 Domain hash and API Key documented here: https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-
