@@ -39,15 +39,12 @@ Run with "ansible-playbook token_multi_dropper.yaml"
 **Usage:** Edit the file to copy in your unique console URL and API key. Then, just run the script with no arguments.
 
 ### Canary-AWS-Bird-Automated-Deployment.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
-
-**Purpose:** This bash script is intended to automate the process of configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.
-
+**Author:** This bash script was kindly donated by a Thinkst customer.  
+**Purpose:** This bash script is intended to automate the process of configuring the device personality of a bird and commissioning it for use after deploying a Canary AWS EC2 instance.  
 **Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `FLOCK_ID` values found in your Canary console.
 Set your desired values for the bird's device personality in the sample config.json file. All bird services are disabled by default.
 Run the script after deploying an AWS EC2 Canary instance to automatically configure the device personality and commission the bird for use.
-Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
-
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)  
 **Prerequisites:** You will need to deploy a Canary AWS EC2 instance before running this script. Sample code for automating the infrastructure provisioning can be found in the terraform folder of this repository. Terraform binaries can be found [here](https://www.terraform.io/downloads.html)
 The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
@@ -64,13 +61,10 @@ You will also need the [jq](https://stedolan.github.io/jq/) package installed on
 **Usage:** The script needs to be edited to set the Console and API key variables. Requires [JQ](https://stedolan.github.io/jq/) and Curl to either be in the path, or for the path to be customized in the script.
 
 ### Canary-GreyNoise-Community-Threat-Intel-Report.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
-
-**Purpose:** This bash script is intended to run your alerts through the GreyNoise Community API.
-
+**Author:** This bash script was kindly donated by a Thinkst customer.  
+**Purpose:** This bash script is intended to run your alerts through the GreyNoise Community API.  
 **Usage:** Set the `CANARY_HASH` & `CANARY_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
-Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
-
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)  
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
@@ -78,13 +72,10 @@ On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip`
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### Canary-GreyNoise-Enterprise-Threat-Intel-Report.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
-
-**Purpose:** This bash script is intended to run your alerts through the GreyNoise Enterprise API.
-
+**Author:** This bash script was kindly donated by a Thinkst customer.  
+**Purpose:** This bash script is intended to run your alerts through the GreyNoise Enterprise API.  
 **Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
-Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
-
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)  
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
@@ -93,13 +84,10 @@ On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip`
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### Recent-Canary-GreyNoise-Enterprise-Threat-Intel-Report.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
-
-**Purpose:** This bash script is intended to run your recent (last 100) alerts through the GreyNoise Enterprise API rather than every alert from antiquity.
-
+**Author:** This bash script was kindly donated by a Thinkst customer.  
+**Purpose:** This bash script is intended to run your recent (last 100) alerts through the GreyNoise Enterprise API rather than every alert from antiquity.  
 **Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `GREYNOISE_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
-Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
-
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)  
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a GreyNoise Enterprise API key, a trial key can be obtained [here](https://www.greynoise.io/viz/signup).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
@@ -108,13 +96,10 @@ On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip`
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
 ### Canary-Shodan-Threat-Intel-Report.sh
-**Author:** This bash script was kindly donated by a Thinkst customer.
-
-**Purpose:** This bash script is intended to run your alerts through the Shodan API.
-
+**Author:** This bash script was kindly donated by a Thinkst customer.  
+**Purpose:** This bash script is intended to run your alerts through the Shodan API.  
 **Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `SHODAN_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
-Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)
-
+Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)  
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
 You will also need a paid Shodan plan to obtain an API key. You can find Shodan plan information [here](https://account.shodan.io/billing).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
@@ -148,6 +133,34 @@ In the future, we'll likely update this script to take a list of hosts from an e
 
 ## Python
 
+### alert_management.py
+**Author:** Javier Domínguez Gómez  
+**Purpose:** Manage all incidents by combining multiple filters and being able to paginate automatically if necessary, all in one tool.  
+**Usage:**
+```commandline
+usage: alert_management.py [-h] -d DOMAIN [-f FLOCKID] [-s SINCE] [-a {true,false}] [-l LIMIT] [-o OUTPUTFILE]
+
+Tool to query the Canary All Incidents API Endpoint and mange the response.
+
+options:
+  -h, --help            show this help message and exit
+  -d DOMAIN, --domain DOMAIN
+                        Client domain to append as <your_domain>.canary.tools URL.
+  -f FLOCKID, --flockid FLOCKID
+                        (Optional) Get all incidents for a specific flock_id.
+  -s SINCE, --since SINCE
+                        (Optional) Only return incidents whose updated_id is greater than this integer. The returned 
+                        feed includes a max_updated_id field if the incident list has entries.
+  -a {true,false}, --acknowledged {true,false}
+                        (Optional) To filter acknowledged or unacknowledged incidents. Valid values are 'true', 
+                        'false'. If you do not specify this flag you will receive all incidents.
+  -l LIMIT, --limit LIMIT
+                        (Optional) Parameter used to initiate cursor pagination. The limit is used to specify the page 
+                        sizes returned when iterating through the pages representing all incidents.
+  -o OUTPUTFILE, --outputfile OUTPUTFILE
+                        (Optional) JSON file to dump the API query response.
+```
+
 ### canaryconsole.py
 **Author:** Thinkst (Adrian)  
 **Purpose:** This is a command-line version of the Canary console. Functionality is limited to read-only functions at this stage, but it may be further developed into a tool that makes it easier to deploy large numbers of Canarytokens or make mass changes to the Canaries.  
@@ -174,21 +187,16 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Usage:** `python3 list_and_delete_factory_auth.py`
 
 ### ad_joiner.py
-**Author:** Thinkst (Support)
-
-**Purpose** Automates AD joining Canaries. One or more Canaries to the same domain can be done using the `cli_args` flag. If you want to join a variety of Canaries (`node_ids`) each to `domains` use the `to_file/from_file` flag. Run `python3 ad_joiner.py to_file --generate-file <file_name>.csv` to generate a `.csv` with the headers needed. Then populate that `.csv` and run `python3 ad_joiner.py --console <console_hash> --auth-token <api-key> from_file --file-path`.
-
+**Author:** Thinkst (Support)  
+**Purpose** Automates AD joining Canaries. One or more Canaries to the same domain can be done using the `cli_args` flag. If you want to join a variety of Canaries (`node_ids`) each to `domains` use the `to_file/from_file` flag. Run `python3 ad_joiner.py to_file --generate-file <file_name>.csv` to generate a `.csv` with the headers needed. Then populate that `.csv` and run `python3 ad_joiner.py --console <console_hash> --auth-token <api-key> from_file --file-path`.  
 **Usage:** 
 `python3 ad_joiner.py -h`
 
 `python3 ad_joiner.py from_file -h` and `python3 ad_joiner.py cli_args -h`
 
 ### edit_bird_mac.py
-
-**Author:** Thinkst (Gareth)
-
-**Purpose** Simply tweak the MAC prefix on your Canary to a custom one not found in the list.
-
+**Author:** Thinkst (Gareth)  
+**Purpose** Simply tweak the MAC prefix on your Canary to a custom one not found in the list.  
 **Usage:** `python3 edit_bird_mac.py [-h] -domain DOMAIN -apikey APIKEY -nodeid NODEID -macprefix MACPREFIX`
 
 ## Binaries
@@ -197,6 +205,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 **Author:** Thinkst (Sherif)
 **Purpose:** Delete all incidents from a specific flock (using flock's name), or from a specific Canary device (using its NodeID); tool will optionally dump all incidents to a json file.
 **Usage:**
+
 #### _Deleting all incidents from the default flock._
 `./CanaryDeleter -apikey $API_KEY -console $CONSOLE_HASH -flock "Default Flock"`
 #### _Deleting all incidents from a specific node, without dumping incidents to a json file_
