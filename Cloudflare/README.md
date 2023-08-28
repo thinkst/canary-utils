@@ -42,7 +42,7 @@
 6. Log in to your [Canary account](https://canary.tools)  
     - Click on the "Gear" and then "Global Settings" to go to the Global Settings page.  
     - Click on Webhooks and paste the canary-block URL from step 4 into the "Generic" option.  
-    - Select custom headers and add a header called, "auth" with a value of "canhasauthenticated" [screenshot](https://github.com/Xorlent/Canary-Cloudflare/blob/main/CanaryWebhookConfig.png) and click "Add."  
+    - Select custom headers and add a header called, "auth" with a value of "canhasauthenticated" [screenshot](https://github.com/Xorlent/canary-utils/blob/Canary-to-CloudflareWorker/Cloudflare/CanaryWebhookConfig.png) and click "Add."  
       - You can easily change this default authentication value by editing the JavaScript within the canary-block Worker.  
 ### Using/Testing
 - You can now trigger a Canary event  
