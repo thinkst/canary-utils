@@ -1,0 +1,14 @@
+{
+    "AdditionalDetails": [["Thing1"],["Thing2"]],
+    "CanaryID": "Canary ID",
+    "CanaryIP": "1.2.3.4",
+    "CanaryLocation": "Headquarters",
+    "CanaryName": "Perimeter",
+    "CanaryPort": "123",
+    "Description": "",
+    "IncidentHash": "",
+    "Intro": "",
+    "ReverseDNS": "",
+    "SourceIP": "6.5.4.3",
+    "Timestamp": "2023-08-25 12:00:00 (UTC)"
+}
