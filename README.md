@@ -107,6 +107,14 @@ If you're running this script on a Linux machine, you will need to install the z
 On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
 The script currently only supports outside Birds, a guide on how to enable this [here](https://help.canary.tools/hc/en-gb/articles/360017954338-Configuring-your-device-as-an-Outside-Bird).
 
+## Cloudflare
+###
+
+## Powershell
+**Author:** This Powershell script was kindly donated by a Thinkst customer.  
+**Purpose:** Cloudflare Workers to receive Canary webhooks and publish a real-time IP blocklist.  
+**Usage:** Please see README.md within the Cloudflare folder.  
+
 ## Powershell
 
 ### CreateTokens.ps1
