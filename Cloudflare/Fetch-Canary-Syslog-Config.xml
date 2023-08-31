@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<configuration>
+  <cloudflare>
+    <!-- Update/edit the values below according to your Cloudflare "canary-receiver" worker settings. -->
+    <URL key="URL" value="https://canary-request-syslog.org.workers.dev"/>
+    <auth key="auth" value="canhasauthenticated"/>
+  </cloudflare>
+  <syslog>
+    <!-- Update/edit the values below according to your specific Syslog server settings.  No support for Syslog TCP. -->
+    <!-- If the default fqdn value remains, we will not attempt to send Syslog messages and instead write to the canarylogs local file. -->
+    <fqdn key="fqdn" value="syslog.hostname.here"/>
+    <port key="port" value="514"/>
+  </syslog>
+  <file>
+    <canarylogs key="canarylogs" value=".\Canary-Syslog-Events.txt"/>
+  </file>
+</configuration>
