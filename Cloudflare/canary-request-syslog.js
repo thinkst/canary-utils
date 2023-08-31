@@ -2,6 +2,10 @@ addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
 
+// Change this to a unique value -- this will become the authentication header field "auth" string for the PowerShell fetch script to use.
+// Note: Be careful not to use the " or $ character in this authentication string
+const authString = "canhasauthenticated"
+
 async function handleRequest(request) {
   // check we have a POST request
   if (request.method !== "GET") {    
@@ -11,7 +15,7 @@ async function handleRequest(request) {
     let Auth = request.headers.get("auth")
     
     // check to make sure the request is authenticated with a secret
-    if (Auth !== "canhasauthenticated"){
+    if (Auth !== authString){
       return new Response(``, {status: 200})
     }
     else {
