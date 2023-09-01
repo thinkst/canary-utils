@@ -110,7 +110,9 @@ The script currently only supports outside Birds, a guide on how to enable this 
 ## Cloudflare
 
 **Author:** This Powershell script was kindly donated by a Thinkst customer.  
-**Purpose:** Cloudflare Workers to receive Canary webhooks and publish a real-time IP blocklist.  
+**Purpose:** Cloudflare Workers to receive, parse, and syslog-format Canary webhook messages.  
+  These events can be picked up using the accompanying PowerShell script without exposing a syslog collector to the Internet.  
+  If desired, the Workers also create and publish an IP Blocklist for consumption by security products (eg. firewall).  
 **Usage:** Please see README.md within the Cloudflare folder.  
 
 ## Powershell
