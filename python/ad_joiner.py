@@ -112,7 +112,7 @@ def encrypt_payload(payload: str, recipient_public_key_b64: str) -> str:
     ciphertext = box.encrypt(plaintext, nonce)
 
     assert nonce == ciphertext[:24]
-    encrypted = nonce + sender_public_key + ciphertext[24:]
+    crypted = nonce + sender_public_key + ciphertext[24:]
     return base64.b64encode(encrypted)
 
 
