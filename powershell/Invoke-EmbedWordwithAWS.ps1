@@ -5,7 +5,8 @@
 
 $Domain = '1234abc.canary.tools' # Enter your Console domain between the quotes. e.g. 1234abc.canary.tools
 $FactoryAuth = 'a1bc3e769fg832hij3' # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-#$FlockID = 'flock:default' # Enter desired flock to place tokens in. This miss required. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+#$FlockID = 'flock:default' # Enter desired flock to place tokens in. This is required. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+
 $aws_FlockID = 'flock:default' # Enter desired flock to place tokens in.
 $word_FlockID = 'flock:default' # Enter desired flock to place tokens in.
 $tokeneniseFile = 'C:\ProgramData\template.docx' # This is location and filename of the template that will be downloaded and tokenised.
