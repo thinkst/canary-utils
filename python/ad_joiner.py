@@ -113,7 +113,7 @@ def encrypt_payload(payload: str, recipient_public_key_b64: str) -> str:
 
     assert nonce == ciphertext[:24]
     crypted = nonce + sender_public_key + ciphertext[24:]
-    return base64.b64encode(encrypted)
+    return base64.b64encode(crypted)
 
 
 def is_smb_enabled(settings: dict) -> bool:
