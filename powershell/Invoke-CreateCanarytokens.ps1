@@ -26,7 +26,7 @@
 Param (
     [string]$Domain = '', # Enter your Console domain between the quotes. e.g. 1234abc.canary.tools
     [string]$FactoryAuth = '', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-    [string]$FlockID = 'flock:default', # Enter desired flock to place tokens in. This miss required. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+    [string]$FlockID = 'flock:default', # Enter desired flock to place tokens in. This is required. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
     [string]$TargetDirectory = "c:\Backup", # Local location to drop the token into. This will be created if it does not exist.
     [string]$TokenType = 'doc-msword' , # Enter your desired token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factoryif
     [string]$TokenFilename = "credentials.docx" # Desired Token file name. Make sure to pick an appropriate filename extension in next line.
