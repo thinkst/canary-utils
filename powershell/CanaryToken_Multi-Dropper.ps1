@@ -412,7 +412,7 @@ Deploy-Token_QR
 ####################################################################################################################################################################################################################################
 
 # Drops a sensitive command Token
-# Note : In order for the registery file to be imported, the script needs to be run as an Administrator
+# Note : In order for the registry file to be imported, the script needs to be run as an Administrator
 function Deploy-Token_Sensitive_command{
     param (
         [string]$TokenType = 'sensitive-cmd' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
@@ -603,7 +603,7 @@ function Deploy-RDP_Shortcut{
         [string]$CanaryIP = '192.168.1.1' , # Enter your Canaries IP Address.
         [string]$ShortcutFilename = "SRV01.lnk", # Enter your preferred shortcut name, usually your Canaries Hostname.
         [string]$TargetDirectory = "c:\RDP_Shortcut_directory", # Local location to drop the shortcut into.
-        [string]$RDPPass = "Rn55ae5$$A!" # Enter your preffered password
+        [string]$RDPPass = "Rn55ae5$$A!" # Enter your preferred password
     )
     
     $OutputFileName = "$TargetDirectory\$ShortcutFilename"

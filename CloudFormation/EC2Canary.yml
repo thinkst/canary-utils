@@ -6,7 +6,7 @@ Resources:
       InstanceType: t3.micro
       Tags:
         - Key: Name
-          Value: SRV-01 # Preffered Name of instsance
+          Value: SRV-01 # Preferred Name of instsance
       NetworkInterfaces:
         - DeviceIndex: '0'
           SubnetId: subnet-283defa3eee4538 # Preferred Subnet, VPC is automatically selected from this.

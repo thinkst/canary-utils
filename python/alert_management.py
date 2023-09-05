@@ -110,12 +110,12 @@ if __name__ == '__main__':
     args, _ = get_args()
 
     """
-    Check mandatory enviroment variable CANARY_API_AUTH_TOKEN and return the value if exists, then exit with error.
+    Check mandatory environment variable CANARY_API_AUTH_TOKEN and return the value if exists, then exit with error.
     For security reasons, this API key that you'll need to use in order to make calls to API must not be provided as
     an argument when executing the program.
     """
     if CANARY_API_AUTH_TOKEN is None:
-        print('Please set CANARY_API_AUTH_TOKEN enviroment variable')
+        print('Please set CANARY_API_AUTH_TOKEN environment variable')
         exit(1)
 
     endpoint = 'all'

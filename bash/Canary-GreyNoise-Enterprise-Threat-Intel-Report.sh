@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script pulls all alert data from a Canary outside bird, sends the results to the GreyNoise Enterprise API for detailed threat intelligence context, and creates a JSON report.
-# Please consult the README for prequisites and usage instructions
+# Please consult the README for prerequisites and usage instructions
 
 # Cleanup any residual files that may have been left behind from previously running the script
 rm -rf outside* canary-ips-*.txt

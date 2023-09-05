@@ -19,7 +19,7 @@ If ($Result -ne 'success') {
     Exit
 }
 Else {
-    Write-Host -ForegroundColor Green "Successfuly created Factory Auth Key: $Authkey"
+    Write-Host -ForegroundColor Green "Successfully created Factory Auth Key: $Authkey"
 }
 
 Write-Host -ForegroundColor Green "[*] Factory Token Creation Script Complete."  

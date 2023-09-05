@@ -129,7 +129,7 @@ function Invoke-SMBShareAlert
     # by default, Canary will trigger an alert only if a file is accessed,
     # not merely opening the share.
     # so we'll have to list shares, list files, then copy one of them.
-    Write-Host -ForegroundColor Yellow "[!] Poke: Openning a share $Canary."
+    Write-Host -ForegroundColor Yellow "[!] Poke: Opening a share $Canary."
     $shares = &net.exe view \\$Canary /all | Select-Object -Skip 7 | Where-Object { $_ -match 'disk*' } | ForEach-Object { $_ -match '^(.+?)\s+Disk*' | out-null; $matches[1] } | Where-Object { $_ -notmatch '.+\$' }
     # now the $shares variable should have the shares enabled on that canary,
     # simple sanity check

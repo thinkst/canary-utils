@@ -132,7 +132,7 @@ echo "\nTarget Directory = $TARGETDIRECTORY"
 echo "\nToken Type = $TOKENTYPE"
 echo "\nToken Filename = $TOKENFILENAME" 
 
-#Checking target directory existance
+#Checking target directory existence
 echo "\n[*] Checking if '$TARGETDIRECTORY' exists..."
 
 if [ -d "$TARGETDIRECTORY" ]; then

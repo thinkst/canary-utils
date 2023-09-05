@@ -76,7 +76,7 @@ $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No","No, 
 $options = [System.Management.Automation.Host.ChoiceDescription[]]($yes, $no)
 
 $title = "`n [!] IMPORTANT"
-$message = "`n [!] Proceed to delete all Tokens from token_search_results.csv? (Permanant)"
+$message = "`n [!] Proceed to delete all Tokens from token_search_results.csv? (Permanent)"
 
 $result = $host.ui.PromptForChoice($title, $message, $options, 1)
 Write-Host "`n"

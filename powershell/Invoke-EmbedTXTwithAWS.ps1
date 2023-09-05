@@ -127,4 +127,4 @@ $(Get-Item $OutputFileName).CreationTimeUTC=$dt3
 $(Get-Item $OutputFileName).LastAccessTimeUTC=$dt4
 $(Get-Item $OutputFileName).LastWriteTimeUTC=$dt4 
 
-Write-Host "Token Successfuly dropped to $OutputFileName"
+Write-Host "Token Successfully dropped to $OutputFileName"

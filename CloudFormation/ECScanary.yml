@@ -20,7 +20,7 @@ Resources:
 # Define VPC Internet Gateway
   InternetGateway:
     Type: AWS::EC2::InternetGateway
-  GatewayAttachement:
+  GatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref 'VPC'
@@ -32,7 +32,7 @@ Resources:
       VpcId: !Ref 'VPC'
   PublicRoute:
     Type: AWS::EC2::Route
-    DependsOn: GatewayAttachement
+    DependsOn: GatewayAttachment
     Properties:
       RouteTableId: !Ref 'PublicRouteTable'
       DestinationCidrBlock: '0.0.0.0/0'
@@ -84,7 +84,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: canary-ecs-role # Preffered Role Name
+      RoleName: canary-ecs-role # Preferred Role Name
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -98,7 +98,7 @@ Resources:
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: canary-ecs-task # Preffered task name
+      Family: canary-ecs-task # Preferred task name
       Cpu: 1024
       Memory: 2048
       NetworkMode: awsvpc
@@ -131,7 +131,7 @@ Resources:
   Service:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: canary-ecs-service # Preffered service name
+      ServiceName: canary-ecs-service # Preferred service name
       Cluster: !Ref Cluster
       TaskDefinition: !Ref TaskDefinition
       DesiredCount: 1
