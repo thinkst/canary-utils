@@ -116,7 +116,7 @@ def encrypt_payload(payload: str, recipient_public_key_b64: str) -> str:
     return base64.b64encode(crypted)
 
 
-def is_smb_enabeled(settings: dict) -> bool:
+def is_smb_enabled(settings: dict) -> bool:
     if settings is None:
         console.print("Failed to get Canary settings. Skipping", style="bold red")
         return False
@@ -436,7 +436,7 @@ if __name__ == "__main__":
                 style="bold red",
             )
             continue
-        if not is_smb_enabeled(settings):
+        if not is_smb_enabled(settings):
             canaries_to_enable_smb.append(node_ad_join_info.node_id)
             console.print(
                 f"Node {node_ad_join_info.node_id} does not have SMB enabled. Skipping AD join",
@@ -525,7 +525,7 @@ if __name__ == "__main__":
                 console.print(f"Error: {status['data']['exception']}", style="bold red")
             except KeyError:
                 console.print(
-                    f"An Error occured. Skipping {node_ad_join_info.node_id}",
+                    f"An Error occurred. Skipping {node_ad_join_info.node_id}",
                     style="bold red",
                 )
                 console.print(

@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script automates the process for commissioning a bird that has been deployed as an AWS EC2 instance and configures the device personality using the Canary API. 
-# Please consult the README for prequisites and usage instructions
+# Please consult the README for prerequisites and usage instructions
 
 # Retrieve flock info and set the FLOCK_ID variable to the desired flock if the default one won't be used
 curl -XGET https://$CANARY_HASH.canary.tools/api/v1/flocks/summary \

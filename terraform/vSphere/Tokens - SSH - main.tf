@@ -32,7 +32,7 @@ data "vsphere_network" "network" {
 }
 
 resource "vsphere_virtual_machine" "vmFromLocalOvf" {
-  name                       = "<PREFERED CANARY VM NAME>"
+  name                       = "<PREFERRED CANARY VM NAME>"
   resource_pool_id           = data.vsphere_resource_pool.pool.id
   datastore_id               = data.vsphere_datastore.datastore.id
   host_system_id             = data.vsphere_host.host.id

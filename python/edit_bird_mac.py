@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description='Edit Bird MAC Script')
 parser.add_argument('-domain', help='Your Console Domain Hash: a123456b', required=True)
 parser.add_argument('-apikey', help='Your Console API Key: c6858257b6f32986d7b44', required=True)
 parser.add_argument('-nodeid', help='The Node ID of the Bird you\'d like to tweak: 00022a1e1ca8a6cc', required=True)
-parser.add_argument('-macprefix', help='Your preffered new MAC prefix: 1A:2B:3C', required=True)
+parser.add_argument('-macprefix', help='Your preferred new MAC prefix: 1A:2B:3C', required=True)
 args = parser.parse_args()
 
 # Extract command line arguments

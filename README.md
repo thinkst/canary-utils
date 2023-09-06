@@ -210,7 +210,7 @@ options:
 ## Binaries
 
 ### CanaryDeleter
-**Author:** Thinkst (Sherif)
+**Author:** Thinkst (Sheriff)
 **Purpose:** Delete all incidents from a specific flock (using flock's name), or from a specific Canary device (using its NodeID); tool will optionally dump all incidents to a json file.
 **Usage:**
 

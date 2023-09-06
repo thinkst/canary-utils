@@ -12,7 +12,7 @@
     How does this work?
     ###################
     1. Create a file eg: -OUFilename ComputerOUs.txt that has a line for each OU you'd like to target.
-       Each line can be an OU Name or an OU DistingushedName.
+       Each line can be an OU Name or an OU DistinguishedName.
        You can use: Get-ADOrganizationalUnit -Filter 'Name -like "*"' | Format-Table DistinguishedName -A
        to get the desired list.
     2. Run powershell as a user that has remote read/write access on the admin shares
