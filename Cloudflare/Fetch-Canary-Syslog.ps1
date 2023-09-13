@@ -16,7 +16,7 @@ $Response = Invoke-WebRequest -Uri $WorkerURL -Headers @{ 'auth' = $WorkerAuth}
 if($Response.Statuscode -eq 204){exit 0} # Nothing to process - resultset is empty
  
 $Content = $Response.Content
-$SyslogArray = ($Content -split "\r?\n|\r")
+$SyslogArray = ($Content -split '\r?\n')
 ForEach ($SyslogEntry in $SyslogArray){
    # Convert message to array of ASCII bytes.
    $bytearray = $([System.Text.Encoding]::ASCII).getbytes($SyslogEntry)
