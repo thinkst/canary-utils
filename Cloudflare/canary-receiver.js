@@ -71,12 +71,29 @@ async function handleRequest(request) {
       }
 
       if (data.CanaryName == MyCanary) {
-        const MaliciousIP = data.SourceIP
-        // process  
-        // Store in KV store (Key-Value store)
-        await canaryblocks.put(MaliciousIP, Timestamp, {expirationTtl: IPBlocklistTTL})
+        // process
+        switch (true){
+          case /Scan/.test(data.Description):
+            // Store in KV store (Key-Value store)
+            await canaryblocks.put(MaliciousIP, Timestamp, {expirationTtl: IPBlocklistTTL})
+          break;
+          case /Load/.test(data.Description):
+            break;
+          case /Settings Changed/.test(data.Description):
+            break;
+          case /Disconnected/.test(data.Description):
+            break;
+          case /Reconnected/.test(data.Description):
+            break;
+          case /Dummy/.test(data.Description):
+            break;
+          default:
+            // Store in KV store (Key-Value store)
+            await canaryblocks.put(MaliciousIP, Timestamp, {expirationTtl: IPBlocklistTTL})
+          break;
+        } // end switch
         return new Response(
-          `Marked IP: ${MaliciousIP} and Stored Event: ${Payload}`,
+          `Marked IP: ${MaliciousIP} as necessary and Stored Event: ${Payload}`,
           {status: 200}
         )
       }
