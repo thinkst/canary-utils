@@ -71,6 +71,7 @@ async function handleRequest(request) {
       }
 
       if (data.CanaryName == MyCanary) {
+        const MaliciousIP = data.SourceIP
         // process
         switch (true){
           case /Scan/.test(data.Description):
