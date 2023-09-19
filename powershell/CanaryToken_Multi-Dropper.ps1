@@ -82,13 +82,11 @@ Deploy-Token_AWS
 function Deploy-Token_Azure{
     param (
         [string]$TokenType = 'azure-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = 'azure_prod.pem', # Desired Token file name.
-        [string]$ConfigFilename = 'azure_id_config', # Desired Azure config file name.
-        [string]$TargetDirectory = "c:\azure_directory" # Local location to drop the token into.
+        [string]$TokenFilename = 'azure_prod', # Desired Token file name.
+        [string]$TargetDirectory = "c:\operate\thinkst" # Local location to drop the token into.
     )
 
-    $OutputFileName = "$TargetDirectory\$TokenFilename"
-    $OutputConfigFileName = "$TargetDirectory\$ConfigFilename"
+    $OutputFileName = "$TargetDirectory\$TokenFilename.zip"
 
     If ((Test-Path $OutputFileName)) {
         Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
@@ -114,12 +112,14 @@ function Deploy-Token_Azure{
     }
     Else {
         $TokenID = $($CreateResult).canarytoken.canarytoken
-        $AzureTokenConfig = $($CreateResult).canarytoken.renders."az-id-config"
     }
     
     Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
-    $AzureTokenConfig | Out-File -FilePath $OutputConfigFileName
-    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName' and '$OutputConfigFilename'. Complete on $env:computername"
+
+    Expand-Archive $OutputFileName -DestinationPath $TargetDirectory
+    Remove-Item $OutputFileName
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName' complete on $env:computername"
 }
 
 Deploy-Token_Azure
