@@ -453,8 +453,9 @@ function Deploy-Token_Sensitive_command{
     Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
     Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
 
-    Start-Process reg -ArgumentList "import $OutputFileName /reg:32"
-    Start-Process reg -ArgumentList "import $OutputFileName /reg:64"
+    reg import $OutputFileName /reg:32
+    reg import $OutputFileName /reg:64
+    
     Remove-Item $OutputFileName
     Remove-Item $TargetDirectory 
 }
