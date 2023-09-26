@@ -37,15 +37,13 @@ addEventListener('fetch', event => {
         let Timestamp = data.Timestamp
         let Payload = "n/a"
         let MaliciousEvent = 1
-  
-        if (EnableSyslog) {
-          let SyslogSplitDate = Timestamp.split("-")
-          let SyslogSplitTime = SyslogSplitDate[2].split(" ")
-          let MonthIndex = Number(SyslogSplitDate[1])
-          let SyslogMonth = Months[MonthIndex]
-          SyslogSplitTime[0] = SyslogSplitTime[0].replace("0"," ")
-          let SyslogPriority = "<113>"
-          switch (true){
+        let SyslogSplitDate = Timestamp.split("-")
+        let SyslogSplitTime = SyslogSplitDate[2].split(" ")
+        let MonthIndex = Number(SyslogSplitDate[1])
+        let SyslogMonth = Months[MonthIndex]
+        SyslogSplitTime[0] = SyslogSplitTime[0].replace("0"," ")
+        let SyslogPriority = "<113>"
+        switch (true){
             case /Scan/.test(data.Description):
               SyslogPriority = "<116>";
               break;
@@ -71,8 +69,8 @@ addEventListener('fetch', event => {
               SyslogPriority = "<119>";
               MaliciousEvent = 0;
               break;
-          }
-  
+        }
+        if (EnableSyslog) {
           Payload = `${SyslogPriority} ${SyslogMonth} ${SyslogSplitTime[0]} ${SyslogSplitDate[0]} ${SyslogSplitTime[1]} ${data.CanaryName}(${data.CanaryLocation}) CanaryEvent: ${data.Intro} | Desc: ${data.Description} | Port: ${data.CanaryPort} | RemoteIP: ${data.SourceIP} | PTR: ${data.ReverseDNS}`
           // Store in KV store (Key-Value store)
           await canaryevents.put(Payload, Timestamp, {expirationTtl: SyslogBufferTTL})
