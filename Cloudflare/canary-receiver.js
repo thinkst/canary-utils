@@ -36,7 +36,7 @@ addEventListener('fetch', event => {
         const data = await request.json()
         let Timestamp = data.Timestamp
         let Payload = "n/a"
-        let MaliciousEvent = 1
+        let MaliciousEvent = true
         let SyslogPriority = "<113>"
         switch (true){
             case /Scan/.test(data.Description):
@@ -50,19 +50,19 @@ addEventListener('fetch', event => {
               break;
             case /Settings Changed/.test(data.Description):
               SyslogPriority = "<117>";
-              MaliciousEvent = 0;
+              MaliciousEvent = false;
               break;
             case /Disconnected/.test(data.Description):
               SyslogPriority = "<114>";
-              MaliciousEvent = 0;
+              MaliciousEvent = false;
               break;
             case /Reconnected/.test(data.Description):
               SyslogPriority = "<118>";
-              MaliciousEvent = 0;
+              MaliciousEvent = false;
               break;
             case /Dummy/.test(data.Description):
               SyslogPriority = "<119>";
-              MaliciousEvent = 0;
+              MaliciousEvent = false;
               break;
         }
         if (EnableSyslog) {
@@ -76,7 +76,7 @@ addEventListener('fetch', event => {
           await canaryevents.put(Payload, Timestamp, {expirationTtl: SyslogBufferTTL})
         }
   
-        if (data.CanaryName == MyCanary && MaliciousEvent == 1) {
+        if (data.CanaryName == MyCanary && MaliciousEvent) {
           const MaliciousIP = data.SourceIP
           // Store in KV store (Key-Value store)
           await canaryblocks.put(MaliciousIP, Timestamp, {expirationTtl: IPBlocklistTTL})
