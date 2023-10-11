@@ -1,6 +1,6 @@
 #Search_through_Alerts.py - Python script to query the Canary Search Incidents API Endpoint documented here. https://docs.canary.tools/incidents/queries.html#search-incidents
 #Domain hash and API Key - Documentation can be found here https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-
-#Usage $ python3 Search_through_Alerts.py Domainhash APIKey Ouputfile 'searchterm'
+#Usage $ python3 Search_through_Alerts.py Domainhash APIKey Outputfile 'searchterm'
 #i.e. $ python3 Search_through_Alerts.py ABC123 DEF456 'Search_Results.json' 'x-forwarded-for'
 
 import requests
