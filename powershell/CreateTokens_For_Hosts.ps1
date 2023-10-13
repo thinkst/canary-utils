@@ -1,4 +1,4 @@
-# Script to create Canary tokens for a list of hosts.
+ # Script to create Canary tokens for a list of hosts.
 # We force TLS1.2 since our API doesn't support lower.
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 Set-StrictMode -Version 2.0
@@ -23,6 +23,12 @@ If ($Result -ne 'success') {
     Write-Host "Canary API available for service!"
 }
 
+# Ask for Flock ID with default value
+$FlockID = Read-Host -Prompt "Enter your Flock ID (Press Enter for default: flock:default)"
+if ([string]::IsNullOrWhiteSpace($FlockID)) {
+    $FlockID = "flock:default"
+}
+
 $Targets = (
 'HOST1',
 'HOST2',
@@ -43,6 +49,7 @@ ForEach ($TargetHostname in $Targets) {
         auth_token = "$ApiToken"
         kind = "doc-msword"
         memo = "$TokenName"
+        flock_id = "$FlockID" # Add Flock ID to the request
     }
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/create" -Body $PostData
     $Result = $CreateResult.result
@@ -57,3 +64,4 @@ ForEach ($TargetHostname in $Targets) {
     # Download token
     Invoke-RestMethod -Method Get -Uri "https://$ApiHost$ApiBaseURL/canarytoken/download?auth_token=$ApiToken&canarytoken=$WordTokenID" -OutFile "$OutputFileName"
 }
+ 
