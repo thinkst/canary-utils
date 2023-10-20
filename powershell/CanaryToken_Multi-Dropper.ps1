@@ -83,7 +83,7 @@ function Deploy-Token_Azure{
     param (
         [string]$TokenType = 'azure-id' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
         [string]$TokenFilename = 'azure_prod', # Desired Token file name.
-        [string]$TargetDirectory = "c:\operate\thinkst" # Local location to drop the token into.
+        [string]$TargetDirectory = "c:\azure_token" # Local location to drop the token into.
     )
 
     $OutputFileName = "$TargetDirectory\$TokenFilename.zip"
