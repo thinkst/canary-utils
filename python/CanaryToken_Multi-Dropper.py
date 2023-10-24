@@ -160,6 +160,108 @@ def drop_mswordmacro_token():
 
 drop_mswordmacro_token()
 
+def drop_azureid_token():
+  #Drop azure-id Token
+  token_directory = os.path.expanduser('~')+'/azureidtoken/'
+  token_filename = 'azure-login.zip'
+  token_type = 'azure-id'
+  AzureCertName = 'prod.pem'
+
+  #Create Token on Console
+  create_token_url = 'https://'+Domain+'/api/v1/canarytoken/factory/create'
+
+  payload = {
+  'factory_auth': FactoryAuth,
+  'kind': token_type,
+  'flock_id' : FlockID,
+  'azure_id_cert_file_name' : AzureCertName,
+  'memo': socket.gethostname()+' - '+token_directory+token_filename,
+  }
+
+  create_token = requests.post(create_token_url, data=payload)
+  
+  if create_token.status_code != requests.codes.ok:
+    print('[!] Creation of '+token_directory+token_filename+' failed.')
+    exit()
+  else:
+    result = create_token.json()
+
+  canarytoken_id = result['canarytoken']['canarytoken']
+
+  #Download token to endpoint.
+  download_token_url = 'https://'+Domain+'/api/v1/canarytoken/factory/download'
+  payload = {
+  'factory_auth': FactoryAuth,
+  'canarytoken': canarytoken_id
+  }
+
+  fetch_token = requests.get(download_token_url, allow_redirects=True, params=payload)
+  
+  if fetch_token.status_code != requests.codes.ok:
+    print('[!] Fetching of '+token_directory+token_filename+' failed.')
+    exit()
+  else:
+    result = create_token.json()
+  
+  if not os.path.exists(token_directory):
+    os.makedirs(token_directory)
+  
+  open(token_directory+token_filename, 'wb').write(fetch_token.content)
+
+  print("[*] Azure-ID Token Dropped")
+
+drop_azureid_token()
+
+def drop_wireguardvpn_token():
+  #Drop azure-id Token
+  token_directory = os.path.expanduser('~')+'/wireguardvpntoken/'
+  token_filename = 'wg0.conf'
+  token_type = 'wireguard'
+
+  #Create Token on Console
+  create_token_url = 'https://'+Domain+'/api/v1/canarytoken/factory/create'
+
+  payload = {
+  'factory_auth': FactoryAuth,
+  'kind': token_type,
+  'flock_id' : FlockID,
+  'memo': socket.gethostname()+' - '+token_directory+token_filename,
+  }
+
+  create_token = requests.post(create_token_url, data=payload)
+  
+  if create_token.status_code != requests.codes.ok:
+    print('[!] Creation of '+token_directory+token_filename+' failed.')
+    exit()
+  else:
+    result = create_token.json()
+
+  canarytoken_id = result['canarytoken']['canarytoken']
+
+  #Download token to endpoint.
+  download_token_url = 'https://'+Domain+'/api/v1/canarytoken/factory/download'
+  payload = {
+  'factory_auth': FactoryAuth,
+  'canarytoken': canarytoken_id
+  }
+
+  fetch_token = requests.get(download_token_url, allow_redirects=True, params=payload)
+  
+  if fetch_token.status_code != requests.codes.ok:
+    print('[!] Fetching of '+token_directory+token_filename+' failed.')
+    exit()
+  else:
+    result = create_token.json()
+  
+  if not os.path.exists(token_directory):
+    os.makedirs(token_directory)
+  
+  open(token_directory+token_filename, 'wb').write(fetch_token.content)
+
+  print("[*] Wireguard VPN Token Dropped")
+
+drop_wireguardvpn_token()
+
 def drop_msexcelmacro_token():
   #Drop msexcel-macro Token 
   token_directory = os.path.expanduser('~')+'/msexcelmacrotoken/' # Download location of token.
