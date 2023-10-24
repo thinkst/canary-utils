@@ -79,6 +79,47 @@ create_token_AWS
 
 ####################################################################################################################################################################################################################################
 
+#Drops an Azure login certificate
+create_token_azure(){
+TokenType="azure-id"
+#Set Token target directory here.
+TargetDirectory="azure_directory"
+#Set Token file name here
+TokenFilename="Azure_Login.zip"
+#Set Azure certificate name
+CertName="prod.pem"
+
+OUTPUTFILENAME="$TargetDirectory/$TokenFilename"
+
+if [ -f "$OUTPUTFILENAME" ];
+then
+printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
+return
+fi
+
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType -d azure_id_cert_file_name=$CertName)
+
+if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
+then
+TOKEN_ID=$(printf "$CREATE_TOKEN" | grep -o '"canarytoken": ".*"' | sed 's/"canarytoken": //' | sed 's/"//g')
+else
+printf "\n \e[1;31m $OUTPUTFILENAME Token failed to be created."
+return
+fi
+
+curl -L -s -G --tlsv1.2 --tls-max 1.2 --create-dirs --output "$OUTPUTFILENAME" -J "https://$DOMAIN/api/v1/canarytoken/factory/download" -d factory_auth=$FACTORYAUTH -d canarytoken=$TOKEN_ID
+
+unzip $OUTPUTFILENAME -d "$TargetDirectory/"
+
+rm $OUTPUTFILENAME
+
+printf "\n \e[1;32m $OUTPUTFILENAME Successfully Created"
+
+}
+create_token_azure
+
+####################################################################################################################################################################################################################################
+
 #Drops an Excel Token
 create_token_excel(){
 TokenType="doc-msexcel"
@@ -325,43 +366,6 @@ create_token_slack
 ####################################################################################################################################################################################################################################
 
 #Drops an Azure login certificate
-create_token_azure(){
-TokenType="azure-id"
-#Set Token target directory here.
-TargetDirectory="azure_directory"
-#Set Token file name here
-TokenFilename="Azure_Login.zip"
-#Set Azure certificate name
-CertName="prod.pem"
-
-OUTPUTFILENAME="$TargetDirectory/$TokenFilename"
-
-if [ -f "$OUTPUTFILENAME" ];
-then
-printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
-return
-fi
-
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType -d azure_id_cert_file_name=$CertName)
-
-if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
-then
-TOKEN_ID=$(printf "$CREATE_TOKEN" | grep -o '"canarytoken": ".*"' | sed 's/"canarytoken": //' | sed 's/"//g')
-else
-printf "\n \e[1;31m $OUTPUTFILENAME Token failed to be created."
-return
-fi
-
-curl -L -s -G --tlsv1.2 --tls-max 1.2 --create-dirs --output "$OUTPUTFILENAME" -J "https://$DOMAIN/api/v1/canarytoken/factory/download" -d factory_auth=$FACTORYAUTH -d canarytoken=$TOKEN_ID
-
-printf "\n \e[1;32m $OUTPUTFILENAME Successfully Created"
-
-}
-create_token_azure
-
-####################################################################################################################################################################################################################################
-
-#Drops a Wireguard VPN config
 create_token_wireguard(){
 TokenType="wireguard"
 #Set Token target directory here.
