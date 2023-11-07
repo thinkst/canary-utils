@@ -3,7 +3,7 @@ A hodgepodge of humble but helpful scripts created for Thinkst Canary customers.
 
 While it's great that most products and services these days have APIs, they're often oversold. The answer to any question about a missing feature can be, "you can do anything with our product, it has an API!"
 
-Logically, your next thought might be, "sure, but that API would be a lot more useful if I had a few spare Python developers to throw at a few projects..."
+Logically, your next thought might be, "Sure, but that API would be a lot more useful if I had a few spare Python developers to throw at a few projects..."
 
 In this spirit, we often build scripts and bits of code to help customers automate and integrate things with our API. In some cases, our fantastic customers even write the code and donate it back to us.
 
@@ -17,16 +17,12 @@ In general, most of these scripts will need to be edited to add your Canary Cons
 ### token_multi_dropper.yaml
 **Author:** Thinkst (Gareth)  
 **Purpose** This is an Ansible playbook containing a "deploy Canary Tokens" module to create Tokens on your hosts using the URI module.  
-**Usage:** Edit line 2 with your desired host group, then edit lines 4,5 and 6 with your Console API details as well as desired flock.
+**Usage:** Edit line 2 with your desired host group, then edit lines 4,5 and 6 with your Console API details and the desired flock.
 By default the Tokens will be created with generic names however these can be tweaked by setting the "target_directory" and "token_filename" variables.
 Run with "ansible-playbook token_multi_dropper.yaml"
 
 ## Bash
 
-### alert_management.sh
-**Author:** Thinkst (Matt)  
-**Purpose** This script is a quick and easy way to export alert data out of the console and clean up the alerts all at once.  
-**Usage:** Run this script with the -h flag to read the usage. API details can be entered at runtime, or edited into the script directly. Additional options exist to save and acknowledge (don't delete) or to acknowledge and delete (don't save).
 
 ### canary_alert_extract.sh
 **Author:** Thinkst (Adrian)  
@@ -51,13 +47,13 @@ You will also need the [jq](https://stedolan.github.io/jq/) package installed on
 
 ### canarygen_awscreds_auto.sh
 **Author:** Thinkst (Adrian)  
-**Purpose:** This shell script generates unique AWS credential tokens each time it is run. It was specifically designed to run with zero dependencies (as opposed to the python version of this script, which has a few). It is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
-**Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning that you'll have to manually edit the script to set your Console and API key variables.  
+**Purpose:** This shell script generates unique AWS credential tokens each time it is run. It was specifically designed to run with zero dependencies (as opposed to the Python version of this script, which has a few). It is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
+**Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning you'll have to manually edit the script to set your Console and API key variables.  
 **Compatibility:** This script has been tested and confirmed to run correctly on macOS (Catalina and High Sierra) and Ubuntu 18.04.  
 
 ### canarygen_awscreds.cmd
 **Author:** Thinkst (Adrian)  
-**Purpose:** This is a Windows version of the following python script. It's designed to generate one unique AWS credentials token per host.  
+**Purpose:** This is a Windows version of the following Python script. It's designed to generate one unique AWS credentials token per host.  
 **Usage:** The script needs to be edited to set the Console and API key variables. Requires [JQ](https://stedolan.github.io/jq/) and Curl to either be in the path, or for the path to be customized in the script.
 
 ### Canary-GreyNoise-Community-Threat-Intel-Report.sh
@@ -101,7 +97,7 @@ The script currently only supports outside Birds, a guide on how to enable this 
 **Usage:** Set the `CANARY_HASH`, `CANARY_API_KEY`, and `SHODAN_API_KEY` variables, as well as the `BIRD_ID` you'd like to retrieve the events from. Run the script and the results will be populated in a new JSON file.
 Doppler is a handy tool for securely syncing and managing environment variables. You can sign up for a free account [here](https://dashboard.doppler.com/register)  
 **Prerequisites:** The Canary API functionality will need to be enabled on your Console, a guide is available [here](https://help.canary.tools/hc/en-gb/articles/360012727537-How-does-the-API-work-).
-You will also need a paid Shodan plan to obtain an API key. You can find Shodan plan information [here](https://account.shodan.io/billing).
+You will also need a paid Shodan plan to obtain an API key. You can find the Shodan plan information [here](https://account.shodan.io/billing).
 You will then need the [jq](https://stedolan.github.io/jq/) package installed on your local machine.
 If you're running this script on a Linux machine, you will need to install the zip utility to extract the alerts archive. On Debian/Ubuntu/Mint, you can install zip by running ```sudo apt install zip```.
 On RedHat/Centos/Fedora, you can install zip by running ```sudo dnf install zip```.
@@ -148,7 +144,7 @@ In the future, we'll likely update this script to take a list of hosts from an e
 ```commandline
 usage: alert_management.py [-h] -d DOMAIN [-f FLOCKID] [-s SINCE] [-a {true,false}] [-l LIMIT] [-o OUTPUTFILE]
 
-Tool to query the Canary All Incidents API Endpoint and mange the response.
+Tool to query the Canary All Incidents API Endpoint and manage the response.
 
 options:
   -h, --help            show this help message and exit
@@ -176,17 +172,17 @@ options:
 
 ### canarygen_awscreds_auto.py
 **Author:** Thinkst (Adrian)  
-**Purpose:** This python script generates unique AWS credential tokens each time it is run. This script is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
-**Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning that you'll have to manually edit the script to set your Console and API key variables.
+**Purpose:** This Python script generates unique AWS credential tokens each time it is run. This script is designed to run once per host, as the description for each token is customized using local environment variables (username and hostname).  
+**Usage:** This is the 'auto' version of this script (the 'arguments' version isn't finished yet), meaning you'll have to manually edit the script to set your Console and API key variables.
 
 ### delete_tokens.py
 **Author:** Thinkst (Jay)  
-**Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
+**Purpose:** This script came from a customer who was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
 
 ### delete_tokens.py
 **Author:** Thinkst (Jay)  
-**Purpose:** This script came from a customer that was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
+**Purpose:** This script came from a customer who was testing creating large amounts of tokens. They needed a quick way to 'clean up' their console while testing, so we built this script (with many disclaimers!) to wipe a console clean of Canarytokens.  
 **Usage:** `python3 delete_tokens.py <console_url> <api_key>`
 
 ### list_and_delete_factory_auth.py
@@ -211,7 +207,7 @@ options:
 
 ### CanaryDeleter
 **Author:** Thinkst (Sheriff)
-**Purpose:** Delete all incidents from a specific flock (using flock's name), or from a specific Canary device (using its NodeID); tool will optionally dump all incidents to a json file.
+**Purpose:** Delete all incidents from a specific flock (using the flock's name), or from a specific Canary device (using its NodeID); the tool will optionally dump all incidents to a JSON file.
 **Usage:**
 
 #### _Deleting all incidents from the default flock._
