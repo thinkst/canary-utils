@@ -86,6 +86,8 @@ Invoke-WebRequest -Uri $TemplateFile -OutFile "$TargetDirectory\$TemplateFileNam
 # Encode template file
 $encodedFile = [System.Text.Encoding]::GetEncoding("iso-8859-1").GetString([System.IO.File]::ReadAllBytes("$TargetDirectory\$TemplateFileName"))
 
+$httpBoundary = [System.Guid]::NewGuid().ToString() 
+
 # Build HTTP multipart/form-data
 $requestBody = @"
 --$httpBoundary
