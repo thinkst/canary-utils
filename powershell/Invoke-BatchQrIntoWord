@@ -1,4 +1,3 @@
- #Canary Token Multi-Dropper
 Param (
     [string]$Domain = 'abc123.canary.tools', # Enter your Console domain between the . e.g. 1234abc.canary.tools
     [string]$FactoryAuth = 'abc123' # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
