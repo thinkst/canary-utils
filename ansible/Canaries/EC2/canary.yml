@@ -1,0 +1,49 @@
+---
+- name: AWS playbook
+  hosts: localhost  # You can change this to your target host or group
+  connection: local
+  gather_facts: False
+
+  vars_files:
+    - ./pass.yml  # Path to your encrypted variables file
+
+  vars:
+    region: eu-west-1 # Specify your target region
+    image: ami-ABC123 # Grab your Canary AMI ID from AWS Console -> EC2 -> AMI Catalog -> My AMIs + Tick "Shared with me".
+    id: "My Ansible Bird"
+    instance_type: t3.micro
+    vpc_subnet_id: subnet-ABC123 # Target Subnet ID
+    sec_group: "default" # Target Security group.
+
+  tasks:
+    - name: Create Canary EC2 instance
+      block:
+        - name: Start a Canary instance
+          amazon.aws.ec2_instance:
+            name: "{{ id }}"
+            vpc_subnet_id: "{{ vpc_subnet_id }}"
+            instance_type: "{{ instance_type }}"
+            security_group: "{{ sec_group }}"
+            aws_access_key: "{{ ec2_access_key }}"
+            aws_secret_key: "{{ ec2_secret_key }}"
+            region: "{{ region }}"
+            network:
+              assign_public_ip: False
+            image_id: "{{ image }}"
+            tags:
+              Environment: Dev
+
+    - name: Facts
+      block: # this block prints out instance data
+
+        - name: Get instances facts
+          ec2_instance_info:
+            aws_access_key: "{{ ec2_access_key }}"
+            aws_secret_key: "{{ ec2_secret_key }}"
+            region: "{{ region }}"
+          register: result
+
+        - name: Instances ID
+          debug:
+            msg: "ID: {{ item.instance_id }} - State: {{ item.state.name }} - Instance Name: {{ id }}"
+          loop: "{{ result.instances }}"

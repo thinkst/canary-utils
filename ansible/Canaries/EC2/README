@@ -1,0 +1,31 @@
+## Prerequisites
+- An AWS Account with service credentials
+- Ansible installed on the host.
+
+### Setup Ansible Vault
+
+- `ansible-vault create vault.yml`
+
+> You will be prompted for a password to encrypt your vault; this will be required everytime you run the playbook.
+
+### Edit Ansible Vault
+
+- `ansible-vault edit ./vault.yml
+> You will be prompted for your password and dropped into a VIM editor. Press 'i' or 'a' to edit, then 'esc' ':wq' to save and exit
+
+> Add this text in using your own access and secret key
+```
+ec2_access_key: AAAAAAAAAAAAAABBBBBBBBBBBB                                      
+ec2_secret_key: afjdfadgf$fgajk5ragesfjgjsfdbtirhf
+```
+
+### Edit the canary.yml playbook.
+
+Lines:
+- 8 : Your vault file
+- 11 : Your target region
+- 12 : Your Canary AMI
+- 13 : Preffered EC2 Instance name
+- 15 : Target Subnet ID
+- 16 : Target security group
+- 34 : Any preffered tags

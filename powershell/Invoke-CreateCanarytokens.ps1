@@ -8,13 +8,12 @@
     How does this work?
     ###################
     1. Create the flock you want the tokens to be part of in your console.
-    2. Get the Flock ID (https://docs.canary.tools/flocks/queries.html#list-flocks-summary)
-    3. Create a Canarytoken Factory (https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string)
-    4. Make sure the host has access to the internet.
-    5. Run powershell as a user that has read/write access on the target directory.
+    2. Create a Canarytoken Factory (https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string)
+    3. Make sure the host has access to the internet.
+    4. Run powershell as a user that has read/write access on the target directory.
     
-    Last Edit: 2021-07-15
-    Version 1.1 - Condensed Instructions
+    Last Edit: 2024-01-16
+    Version 1.2 - Removed the need to specify Flock ID. 
 .EXAMPLE
     .\Invoke-CreateCanarytokensFactoryLocal.ps1
     This will run the tool with the default params, asking interactively for missing ones.
@@ -26,7 +25,6 @@
 Param (
     [string]$Domain = '', # Enter your Console domain between the quotes. e.g. 1234abc.canary.tools
     [string]$FactoryAuth = '', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-    [string]$FlockID = 'flock:default', # Enter desired flock to place tokens in. This is required. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
     [string]$TargetDirectory = "c:\Backup", # Local location to drop the token into. This will be created if it does not exist.
     [string]$TokenType = 'doc-msword' , # Enter your desired token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factoryif
     [string]$TokenFilename = "credentials.docx" # Desired Token file name. Make sure to pick an appropriate filename extension in next line.
@@ -61,7 +59,6 @@ if ($FactoryAuth -ne '') {
 
 Write-Host -ForegroundColor Green "[*] Starting Script with the following params:
         Console Domain   = $ApiHost
-        Flock ID         = $FlockID
         Target Directory = $TargetDirectory 
         Token Type       = $TokenType
         Token Filename   = $TokenFilename
@@ -90,7 +87,6 @@ $TokenName = $OutputFileName
 $PostData = @{
     factory_auth = "$ApiToken"
     kind       = "$TokenType"
-    flock_id = "$FlockID"
     memo       = "$([System.Net.Dns]::GetHostName()) - $TokenName"
 }
 Write-Host -ForegroundColor Green "[*] Hitting API to create token ..."

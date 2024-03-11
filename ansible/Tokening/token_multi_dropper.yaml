@@ -1,0 +1,345 @@
+- name: Canary Token Multi Dropper
+  hosts: all
+  vars:
+    domain: ABC123.canary.tools # Enter your Console domain between the . e.g. 1234abc.canary.tools
+    factory_auth: ABC123 # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+    flock_id: flock:default # Enter desired flock to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
+
+  tasks:
+########################################################################################################################################################################
+    - name: Deploy AWS Token
+      vars:
+        token_type: aws-id
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.txt"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy Excel Token
+      vars:
+        token_type: doc-msexcel
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.xlsx"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy Word Token
+      vars:
+        token_type: doc-msword
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.docx"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy Excel Macro Token
+      vars:
+        token_type: msexcel-macro
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.xlsm"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy Word Macro Token
+      vars:
+        token_type: msword-macro
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.docm"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy PDF Token
+      vars:
+        token_type: pdf-acrobat-reader
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.pdf"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy QR Token
+      vars:
+        token_type: qr-code
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.png"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
+    - name: Deploy Slack Token
+      vars:
+        token_type: slack-api
+        target_directory: "~/{{ token_type }}_directory"
+        token_filename: "{{ token_type }}.txt"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "{{ inventory_hostname }} - {{ target_directory }}/{{ token_filename }}"
+              flock_id: "{{ flock_id }}"
+              kind: "{{ token_type }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+########################################################################################################################################################################
