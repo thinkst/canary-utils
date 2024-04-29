@@ -631,6 +631,146 @@ function Deploy-RDP_Shortcut{
 
 Deploy-RDP_Shortcut
 
+####################################################################################################################################################################################################################################
+
+# Create an entry in the credential manager
+
+function Deploy-CredentialManager{
+    param (
+        [string]$Target = '192.168.1.1' , # Enter your Canaries IP Address/URL/Domain
+        [string]$Username = $env:UserName, # Enter your preferred Username
+        [string]$Password = -join ((48..57) + (63..90) + (97..122) + 33 + 35 | Get-Random -Count 16 | ForEach-Object {[char]$_}) # Random Password
+    )
+    
+    If ((cmdkey /list:LegacyGeneric:target=$Target).count -gt 4) {
+        Write-Host -ForegroundColor Yellow "[*] '$Target' exists, skipping..."
+        return
+    }
+    
+    cmdkey /generic:$Target /user:$Username /pass:$Password
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$Target', '$Username', '$Password'. Complete on $env:computername"
+}
+
+Deploy-CredentialManager
+
+####################################################################################################################################################################################################################################
+
+#Drops an Filezilla Config
+function Deploy-FilezillaConfig{
+    param (
+        [string]$TokenFilename = "recentservers.xml", # Desired Token file name (default Filezilla)
+        [string]$TargetDirectory = $(Join-Path -Path $env:APPDATA -ChildPath "FileZilla"), # Local location to drop the token into (Default Filezilla)
+        [string]$Username = $env:UserName,
+        [string]$Password = -join ((48..57) + (63..90) + (97..122) + 33 + 35 | Get-Random -Count 16 | ForEach-Object {[char]$_}), # Random Password
+        [string]$Server = "192.168.1.1"
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $Password = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Password))
+
+    $filezillaConfig = "<?xml version=`"1.0`" encoding=`"UTF-8`"?>
+<FileZilla3 version=`"3.67.0`" platform=`"windows`">
+     <RecentServers>
+          <Server>
+               <Host>$server</Host>
+               <Port>21</Port>
+               <Protocol>0</Protocol>
+               <Type>0</Type>
+               <User>$Username</User>
+               <Pass encoding=`"base64`">$Password</Pass>
+               <Logontype>1</Logontype>
+               <PasvMode>MODE_DEFAULT</PasvMode>
+               <EncodingType>Auto</EncodingType>
+               <BypassProxy>0</BypassProxy>
+          </Server>
+     </RecentServers>
+</FileZilla3>
+"
+
+    $filezillaConfig | Out-File $OutputFileName -Encoding utf8
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Deploy-FilezillaConfig
+
+####################################################################################################################################################################################################################################
+
+#Drops an SMB Shortcut
+function Deploy-SMBShortcut{
+    param (
+        [string]$TokenFilename = "backup.lnk", # Desired breadcrumb file name (default Filezilla)
+        [string]$TargetDirectory = "C:\SMB_shortcut_directory", # Local location to drop the breadcrumb into
+        [string]$TargetPath = "\\192.168.1.1\backup" # SMB path to your canary
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $LNKFILE = $OutputFileName
+    $WshShell = New-Object -comObject WScript.Shell
+    $Shortcut = $WshShell.CreateShortcut("$LNKFILE")
+    $Shortcut.TargetPath = $TargetPath
+    $Shortcut.Save()
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Deploy-SMBShortcut
+
+####################################################################################################################################################################################################################################
+
+#Drops an URL Shortcut
+function Deploy-URLShortcut{
+    param (
+        [string]$TokenFilename = "userwebroot.url", # Desired Token file name
+        [string]$TargetDirectory = "C:\URL_shortcut_directory", # Local location to drop the token into
+        [string]$TargetPath = "https://192.168.1.1" # URL to your Canary
+    )
+
+    $OutputFileName = "$TargetDirectory\$TokenFilename"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+
+    $fileContent = "[InternetShortcut]
+IDList=
+URL=$TargetPath
+"
+
+    $fileContent | Out-File $OutputFileName -Encoding utf8
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+
+Deploy-URLShortcut
+
 # Adding generic creds to cmdkey
 # Reference : https://blog.thinkst.com/2021/06/rdp-cmdkey-canary-and-thee_10.html
 
