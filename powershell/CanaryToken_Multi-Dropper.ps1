@@ -597,12 +597,12 @@ Deploy-Token_Word_Macro
 
 ####################################################################################################################################################################################################################################
 
-# Create RDP Shortcut pointing towards a Canary
+# Create RDP Shortcut pointing towards a Canary and adds a entry into credential manager.
 # Note : this should be accessible from your Tokened Host.
 
 function Deploy-RDP_Shortcut{
     param (
-        [string]$CanaryIP = '192.168.1.1' , # Enter your Canaries IP Address.
+        [string]$CanaryIP = '192.0.2.1' , # Enter your Canaries IP Address.
         [string]$ShortcutFilename = "SRV01.lnk", # Enter your preferred shortcut name, usually your Canaries Hostname.
         [string]$TargetDirectory = "c:\RDP_Shortcut_directory", # Local location to drop the shortcut into.
         [string]$RDPPass = "Rn55ae5$$A!" # Enter your preferred password
@@ -619,6 +619,7 @@ function Deploy-RDP_Shortcut{
         New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
     }
 
+    # Adds an entry into credential manager.
     cmdkey /generic:$CanaryIP /user:$env:UserName /pass:$RDPPass
     
     $wshshell = New-Object -ComObject WScript.Shell
@@ -637,7 +638,7 @@ Deploy-RDP_Shortcut
 
 function Deploy-CredentialManager{
     param (
-        [string]$Target = '192.168.1.1' , # Enter your Canaries IP Address/URL/Domain
+        [string]$Target = '192.0.2.1' , # Enter your Canaries IP Address/URL/Domain
         [string]$Username = $env:UserName, # Enter your preferred Username
         [string]$Password = -join ((48..57) + (63..90) + (97..122) + 33 + 35 | Get-Random -Count 16 | ForEach-Object {[char]$_}) # Random Password
     )
@@ -663,7 +664,7 @@ function Deploy-FilezillaConfig{
         [string]$TargetDirectory = $(Join-Path -Path $env:APPDATA -ChildPath "FileZilla"), # Local location to drop the token into (Default Filezilla)
         [string]$Username = $env:UserName,
         [string]$Password = -join ((48..57) + (63..90) + (97..122) + 33 + 35 | Get-Random -Count 16 | ForEach-Object {[char]$_}), # Random Password
-        [string]$Server = "192.168.1.1"
+        [string]$Server = "192.0.2.1"
     )
 
     $OutputFileName = "$TargetDirectory\$TokenFilename"
@@ -712,7 +713,7 @@ function Deploy-SMBShortcut{
     param (
         [string]$TokenFilename = "backup.lnk", # Desired breadcrumb file name (default Filezilla)
         [string]$TargetDirectory = "C:\SMB_shortcut_directory", # Local location to drop the breadcrumb into
-        [string]$TargetPath = "\\192.168.1.1\backup" # SMB path to your canary
+        [string]$TargetPath = "\\192.0.2.1\backup" # SMB path to your canary
     )
 
     $OutputFileName = "$TargetDirectory\$TokenFilename"
@@ -744,7 +745,7 @@ function Deploy-URLShortcut{
     param (
         [string]$TokenFilename = "userwebroot.url", # Desired Token file name
         [string]$TargetDirectory = "C:\URL_shortcut_directory", # Local location to drop the token into
-        [string]$TargetPath = "https://192.168.1.1" # URL to your Canary
+        [string]$TargetPath = "https://192.0.2.1" # URL to your Canary
     )
 
     $OutputFileName = "$TargetDirectory\$TokenFilename"
@@ -771,11 +772,7 @@ URL=$TargetPath
 
 Deploy-URLShortcut
 
-# Adding generic creds to cmdkey
-# Reference : https://blog.thinkst.com/2021/06/rdp-cmdkey-canary-and-thee_10.html
-
-cmdkey /add:02-FINANCE-02 /user:administrator /pass:super-secret123
-
 ####################################################################################################################################################################################################################################
 
 Write-Host -ForegroundColor Green "[*] Multi-Token dropper Complete"
+Exit 0
