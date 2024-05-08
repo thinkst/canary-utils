@@ -1,21 +1,53 @@
 #!/bin/bash
-#
-# Requires curl and jq to be in the path
-# sudo apt install curl jq
+# Call script with :
+# user@host $ sh mass_fetch_tokens.sh abc123 5a3...2xf
+# requires JQ to be installed :
+# user@host $ sudo apt-get install jq
+# https://stedolan.github.io/jq/
 
-# Set this variable to your API token (grab it here: https://1234abcd.canary.tools/settings where "1234abcd" is your unique console's CNAME)
-export token=ABC123
+CANARYDOMAIN=$1
+CANARYAPIKEY=$2
 
-# Customize this variable to match your console URL
-export console=ABC123.canary.tools
+PAGELIMIT=50
+VARCURSOR=none
+i=1
 
-# Complete Filename
-export filename=$console-tokens.csv
+# Check if the required parameters are provided
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <CANARYDOMAIN> <CANARYAPIKEY>"
+    exit 1
+fi
 
-# Base URL
-export baseurl="https://$console/api/v1/canarytokens/fetch?auth_token=$token"
+# Initial run to fetch page cursor.
 
-# Run the jewels
-echo created_std,kind,memo > $filename
-curl -s "$baseurl" | jq -r '.tokens[] | [.created_printable, .kind, .memo | tostring] | @csv' >> $filename
-echo Results saved in $filename
+echo '\n [*] Fetching all Tokens in batches of '$PAGELIMIT'...'
+
+# Add column headers to the CSV file.
+echo '"Flock ID","Token Node ID","Creation Date","Enabled","Type", "Memo"' > token_results.csv
+
+curl -s https://$CANARYDOMAIN.canary.tools/api/v1/canarytokens/paginate -d auth_token=$CANARYAPIKEY -d limit=$PAGELIMIT -G > temp.txt ; VARCURSOR=$(jq -r '.cursor.next' temp.txt) ; jq -r '.canarytokens[] | [.flock_id, .canarytoken, .created_printable, .enabled, .kind, .memo | tostring] | @csv' temp.txt >> token_results.csv
+
+# Only print cursor if it's not "null"
+if [[ $VARCURSOR != "null" ]]; then
+    echo '\n [*] Page cursor '$i' is :' $VARCURSOR
+fi
+
+# Loop to iterate through pages.
+
+while [[ $VARCURSOR != "null" ]]
+do
+  ((i++))
+  curl -s https://$CANARYDOMAIN.canary.tools/api/v1/canarytokens/paginate -d auth_token=$CANARYAPIKEY -d cursor=$VARCURSOR -G > temp.txt ; VARCURSOR=$(jq -r '.cursor.next' temp.txt) ; jq -r '.canarytokens[] | [.flock_id, .canarytoken, .created_printable, .enabled, .kind, .memo | tostring] | @csv' temp.txt >> token_results.csv
+  if [[ $VARCURSOR != "null" ]]; then
+      echo '\n [*] Page cursor '$i' is :' $VARCURSOR
+  fi
+done
+
+echo '\n [*] Job Complete!'
+echo '\n [*] Total Pages of Tokens fetched:' $i
+
+RESULTCOUNT=$(wc -l < token_results.csv)
+
+echo '\n [*] Number of Tokens found :' $RESULTCOUNT
+
+echo '\n [*] Results written to token_results.csv \n'
