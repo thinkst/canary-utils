@@ -416,22 +416,17 @@ Deploy-Token_QR
 function Deploy-Token_Sensitive_command{
     param (
         [string]$TokenType = 'sensitive-cmd' , # Enter your required token type. Full list available here. https://docs.canary.tools/canarytokens/factory.html#list-canarytokens-available-via-canarytoken-factory
-        [string]$TokenFilename = "sensitive_cmd.reg", # Desired Token file name.
-        [string]$TargetDirectory = "c:\Sensitive_command_directory", # Local location to drop the token into.
         [string]$WatchedProcess = "calc.exe" # Process you'd like to alert on
     )
     
-    $OutputFileName = "$TargetDirectory\$TokenFilename"
-
-    If ((Test-Path $OutputFileName)) {
-        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+     $OutputFileName = "C:\Windows\Temp\sensitive_cmd.reg"
+    
+    # Check if the Token exists first
+    $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$WatchedProcess"
+    if ((Test-Path $registryPath)) {
+        Write-Host -ForegroundColor Green "[*] Token for: '$WatchedProcess' already exists, skipping..."
         return
     }
-    
-    If (!(Test-Path $TargetDirectory)) {
-        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
-    }
-    
     
     $PostData = @{
         factory_auth = "$FactoryAuth"
@@ -457,7 +452,6 @@ function Deploy-Token_Sensitive_command{
     reg import $OutputFileName /reg:64
     
     Remove-Item $OutputFileName
-    Remove-Item $TargetDirectory 
 }
 
 Deploy-Token_Sensitive_command
