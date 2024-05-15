@@ -5,7 +5,6 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 Domain = "xxxxyyyy.canary.tools"  # Enter your Console domain between the . e.g. 1234abc.canary.tools
 FactoryAuth = "a1bc3e769fg832hij3"  # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-FlockID = "flock:default"  # Enter desired flock ID to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
 
 def drop_msword_token():
     # Drop MSWord Token
