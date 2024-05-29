@@ -5,7 +5,6 @@ import zipfile
 
 Domain = "XXXXXX.canary.tools" # Enter your Console domain between the . e.g. 1234abc.canary.tools
 FactoryAuth = "XXXXX" # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
-FlockID = "flock:default" # Enter desired flock ID to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
 
 def drop_awsid_token():
   #Drop aws-id Token 
@@ -19,7 +18,6 @@ def drop_awsid_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -71,7 +69,6 @@ def drop_azureid_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'azure_id_cert_file_name' : AzureCertName,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
@@ -127,7 +124,6 @@ def drop_msword_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -178,7 +174,6 @@ def drop_mswordmacro_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -229,7 +224,6 @@ def drop_msexcelmacro_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -280,7 +274,6 @@ def drop_adobepdf_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -331,7 +324,6 @@ def drop_qr_code_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -382,7 +374,6 @@ def drop_slackapi_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -433,7 +424,6 @@ def drop_windows_folder_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
   
@@ -489,7 +479,6 @@ def drop_wireguardvpn_token():
   payload = {
   'factory_auth': FactoryAuth,
   'kind': token_type,
-  'flock_id' : FlockID,
   'memo': socket.gethostname()+' - '+token_directory+token_filename,
   }
 
