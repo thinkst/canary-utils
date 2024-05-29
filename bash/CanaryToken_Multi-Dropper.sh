@@ -6,8 +6,6 @@
 DOMAIN="ABC123.canary.tools"
 # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
 FACTORYAUTH="ABC123"
-# Enter desired flock to place tokens in. Docs available here. https://docs.canary.tools/flocks/queries.html#list-flock-sensors
-FLOCKID="flock:default"
 
 ####################################################################################################################################################################################################################################
 
