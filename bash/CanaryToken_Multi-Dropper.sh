@@ -58,7 +58,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -95,7 +95,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType -d azure_id_cert_file_name=$CertName)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType -d azure_id_cert_file_name=$CertName)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -134,7 +134,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -169,7 +169,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -204,7 +204,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -239,7 +239,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -274,7 +274,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -309,7 +309,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -344,7 +344,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
@@ -379,7 +379,7 @@ printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
 return
 fi
 
-CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d flock_id=$FLOCKID -d kind=$TokenType)
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
 
 if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
 then
