@@ -1,0 +1,83 @@
+- name: Azure Login Cert Canarytoken Deployment - linux hosts
+  hosts: all
+  become: true
+  vars:
+    console_domain: CONSOLE_DOMAIN_HERE.canary.tools
+    factory_auth: FACTORY_AUTHSTRING_HERE
+
+  tasks:
+    - name: Deploy Azure Token
+      vars:
+          token_type: azure-id
+          target_directory: "/etc/azure-config"
+          token_filename: "azure-config.zip"
+          azure_id_cert_file_name: azure-prod
+          current_datetime: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
+      block:
+        - name: Ensure {{ target_directory }} exists
+          file:
+            path: "{{ target_directory }}"
+            state: directory
+            mode: '0755'
+
+        - name: Check if {{ target_directory }}/{{ token_filename }} exists
+          stat:
+            path: "{{ target_directory }}/{{ token_filename }}"
+          register: output_file
+
+        - name: Create {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ console_domain }}/api/v1/canarytoken/factory/create"
+            method: POST
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              memo: "hostname:{{ inventory_hostname }}|path:{{ target_directory }}/({{ azure_id_cert_file_name }}, config)|created:{{ current_datetime }}"
+              kind: "{{ token_type }}"
+              azure_id_cert_file_name: "{{ azure_id_cert_file_name }}"
+            return_content: yes
+          register: create_token
+          when: not output_file.stat.exists
+
+        - name: Download {{ token_type }} Canary Token
+          uri:
+            url: "https://{{ console_domain }}/api/v1/canarytoken/factory/download"
+            method: GET
+            dest: "{{ target_directory }}/{{ token_filename }}"
+            body_format: form-urlencoded
+            body:
+              factory_auth: "{{ factory_auth }}"
+              canarytoken: "{{ create_token.json.canarytoken.canarytoken }}"
+            status_code: 200
+          when: not output_file.stat.exists
+
+        - name: Extract the ZIP file
+          ansible.builtin.unarchive:
+            src: "{{ target_directory }}/{{ token_filename }}"
+            dest: "{{ target_directory }}"
+            remote_src: yes
+          when: not output_file.stat.exists
+
+        - name: Delete the ZIP file
+          file:
+            path: "{{ target_directory }}/{{ token_filename }}"
+            state: absent
+          when: not output_file.stat.exists
+
+        - name: Change permissions of azure_id_cert_file_name to be readable by others
+          file:
+            path: "{{ target_directory }}/{{ azure_id_cert_file_name }}"
+            state: file
+            mode: '0644'
+
+        - name: Change permissions of config to be readable by others
+          file:
+            path: "{{ target_directory }}/config"
+            state: file
+            mode: '0644'
+
+      rescue:
+        - name: Clean up - Remove the zip file containing cert and config - {{ target_directory }}
+          file:
+            path: "{{ target_directory }}"
+            state: absent
