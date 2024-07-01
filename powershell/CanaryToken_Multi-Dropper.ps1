@@ -458,6 +458,70 @@ Deploy-Token_Sensitive_command
 
 ####################################################################################################################################################################################################################################
 
+# Tokens an executable.
+function Deploy-Token_Signed_EXE{
+    param (
+        [string]$TokenTemplate = "C:\Users\Administrator\Downloads\cports.exe", # Path to the exectuable you'd like to Token.
+        [string]$TargetDirectory = "c:\exe_directory" # Local location to drop the token into. (The executable will keep it's name.)
+    )
+
+    $ExecutableName = Split-Path $TokenTemplate -Leaf
+
+    $OutputFileName = "$TargetDirectory\$ExecutableName"
+
+    If ((Test-Path $OutputFileName)) {
+        Write-Host -ForegroundColor Yellow "[*] '$OutputFileName' exists, skipping..."
+        return
+    }
+
+    If (!(Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -Verbose -ErrorAction Stop -Path "$TargetDirectory" > $null
+    }
+    
+    $formData = @{
+    kind = "signed-exe"
+    memo = "$([System.Net.Dns]::GetHostName()) - $OutputFileName"
+    factory_auth = $FactoryAuth
+    }
+
+    $fileContent = [System.IO.File]::ReadAllBytes($TokenTemplate)
+    $fileName = [System.IO.Path]::GetFileName($TokenTemplate)
+
+    $boundary = [System.Guid]::NewGuid().ToString()
+
+    $body = ""
+
+    foreach ($key in $formData.Keys) {
+        $body += "--$boundary`r`n"
+        $body += "Content-Disposition: form-data; name=`"$key`"`r`n`r`n"
+        $body += "$($formData[$key])`r`n"
+    }
+
+    $body += "--$boundary`r`n"
+    $body += "Content-Disposition: form-data; name=`"exe`"; filename=`"$fileName`"`r`n"
+    $body += "Content-Type: application/x-msdownload`r`n`r`n"
+    $body += [System.Text.Encoding]::GetEncoding("iso-8859-1").GetString($fileContent) + "`r`n"
+    $body += "--$boundary--`r`n"
+
+    $bodyBytes = [System.Text.Encoding]::GetEncoding("iso-8859-1").GetBytes($body)
+
+    $headers = @{
+        "Content-Type" = "multipart/form-data; boundary=$boundary"
+    }
+
+    $response = Invoke-RestMethod -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Method Post -Headers $headers -Body $bodyBytes
+
+    $TokenID = $response.canarytoken.canarytoken
+
+    Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+
+    Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
+}
+# Disabled unless required, simply uncomment the the below line to deploy the Token.
+#Deploy-Token_Signed_EXE
+
+####################################################################################################################################################################################################################################
+
 # Drops a Web Bug as a Shortcut.
 function Deploy-Token_Web{
     param (
