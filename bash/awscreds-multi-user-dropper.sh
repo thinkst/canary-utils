@@ -6,8 +6,15 @@ auth_factory=FACTORY_AUTH_STRING_HERE # Enter your Factory auth key. e.g a1bc3e7
 config_region="us-west-2"
 config_outputformat="json"
 
-# users_base_dir="/home" # Linux
-users_base_dir="/Users"  # OSx
+os_type=$(uname)
+
+    if [ "$os_type" == "Darwin" ]; then
+        # macOS
+        users_base_dir="/Users"
+    else
+        # Linux
+        users_base_dir="/home"
+    fi
 
 # Get the list of user home directories excluding /Users/Shared (on OSx)
 user_dirs=$(find $users_base_dir -type d -maxdepth 1 -mindepth 1 | grep -v '/Users/Shared')
@@ -33,8 +40,14 @@ for user_dir in $user_dirs; do
 
     # Create the token reminder
     # AWS Profile name will be an md5 hash, if a specific named profile is prefered specify it below
-    new_profile=$(uuidgen | md5 | awk '{print $1}')
-    tokenreminder="hostname: $HOSTNAME|username: $current_username|path: $credentials_file|profile: $new_profile|created: $currentDateTime" 
+    if [ "$os_type" == "Darwin" ]; then
+        # macOS
+        new_profile=$(uuidgen | md5 | awk '{print $1}')
+    else
+        # Linux
+        new_profile=$(uuidgen | md5sum | awk '{print $1}')
+    fi
+    tokenreminder="hostname: $HOSTNAME|username: $current_username|path: $credentials_file|profile: $new_profile|created: $currentDateTime"
     
     awscreds=$(curl -s https://$console_domain/api/v1/canarytoken/factory/create \
     -d factory_auth=$auth_factory \
