@@ -1,7 +1,7 @@
  # Multiple Sensitive Command Canarytoken Dropper
  Param (
     [string]$ConsoleDomain = 'CONSOLE_DOMAIN_HERE.canary.tools', #  Enter your Console domain  for example 1234abc.canary.tools
-    [string]$FactoryAuth = 'FACTORY_AUTHSTRING_HERE', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+    [string]$FactoryAuth = 'FACTORY_AUTHSTRING_HERE' # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
     )
 
 ####################################################################################################################################################################################################################################
@@ -56,10 +56,16 @@ function Deploy-Token_Sensitive_command{
         }
     
         Invoke-RestMethod -Method Get -Uri "https://$ConsoleDomain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
-       
-        Start-Process -FilePath "reg" -ArgumentList "import `"$OutputFileName`" /reg:32" -NoNewWindow -Wait
-        Start-Process -FilePath "reg" -ArgumentList "import `"$OutputFileName`" /reg:64" -NoNewWindow -Wait
-    
+
+        $is64BitOS = [Environment]::Is64BitOperatingSystem
+
+        if ($is64BitOS) {
+            Start-Process -FilePath "reg" -ArgumentList "import `"$OutputFileName`" /reg:32" -NoNewWindow -Wait
+            Start-Process -FilePath "reg" -ArgumentList "import `"$OutputFileName`" /reg:64" -NoNewWindow -Wait
+        } else {
+            Start-Process -FilePath "reg" -ArgumentList "import `"$OutputFileName`" /reg:32" -NoNewWindow -Wait
+        }
+        
         Remove-Item $OutputFileName
          #Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername"
     }
