@@ -47,7 +47,7 @@ awscreds=$(curl -s https://$console/api/v1/canarytoken/create \
 ##echo $awscreds | grep -oE "aws_access_key_id = .{20}" >> $filepath/awscreds_$filedate.txt
 ##echo $awscreds | grep -Eo "aws_secret_access_key = .{40}" >> $filepath/awscreds_$filedate.txt
 ##echo -e "\nCreds written to $filepath/awscreds_$filedate.txt"
-echo "[default]" > $filepath/filename
+echo "[default]" > $filepath/$filename
 echo $awscreds | grep -oE "aws_access_key_id = .{20}" >> $filepath/$filename
 echo $awscreds | grep -Eo "aws_secret_access_key = .{40}" >> $filepath/$filename
 echo -e "\nCreds written to $filepath/$filename"
