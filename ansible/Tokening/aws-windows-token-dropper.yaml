@@ -1,0 +1,52 @@
+---
+- name: Canary Token Deployer for Windows
+  hosts: all
+  #gather_facts: no
+  vars:
+    domain: aaaa.canary.tools  # Enter your Canary Console domain
+    factory_auth: aaaa  # Enter your Factory auth key
+    flock_id: flock:default  # Enter desired flock to place tokens in
+    token_type: aws-id  # Specify the token type you want to deploy
+    target_directory: "C:\\Users\\john\\Desktop\\{{ token_type }}_directory"
+    token_filename: "{{ token_type }}.txt"
+
+  tasks:
+    - name: Ensure target directory exists
+      win_file:
+        path: "{{ target_directory }}"
+        state: directory
+
+    - name: Check if token file exists
+      win_stat:
+        path: "{{ target_directory }}\\{{ token_filename }}"
+      register: output_file
+
+    - name: Create Canary Token
+      win_uri:
+        url: "https://{{ domain }}/api/v1/canarytoken/factory/create"
+        method: POST
+        content_type: application/x-www-form-urlencoded
+        body: "factory_auth={{ factory_auth }}&memo={{ inventory_hostname }} - {{ target_directory }}\\{{ token_filename }}&flock_id={{ flock_id }}&kind={{ token_type }}"
+        return_content: yes
+      register: create_token
+      when: not output_file.stat.exists
+
+    - name: Download Canary Token
+      win_get_url:
+        url: "https://{{ domain }}/api/v1/canarytoken/factory/download?factory_auth={{ factory_auth }}&canarytoken={{ create_token.json.canarytoken.canarytoken }}"
+        dest: "{{ target_directory }}\\{{ token_filename }}"
+      register: download_result
+      when: not output_file.stat.exists
+
+    - name: Verify Canary Token download success
+      win_shell: |
+        if (Test-Path "{{ target_directory }}\\{{ token_filename }}") {
+          Write-Output "Successfully downloaded Canary Token for {{ token_type }}"
+          exit 0
+        } else {
+          Write-Error "Failed to download Canary Token for {{ token_type }}"
+          exit 1
+        }
+      register: verification_result
+      failed_when: verification_result.rc != 0
+      when: not output_file.stat.exists 
