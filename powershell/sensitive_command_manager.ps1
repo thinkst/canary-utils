@@ -25,7 +25,7 @@
    Specify the parent process to exclude from Token Triggering.
 
 .NOTES
-   Version: 1.0
+   Version: 1.2
    Author: Gareth Wood
 
 .EXAMPLE
@@ -39,11 +39,9 @@
 .EXAMPLE
    .\SensitiveCommandManager.ps1 -Action ignoreuser -IgnoreUser "user1" -Executable "example.exe"
    Excludes the user "user1" from triggering the Token.
-   Note: This function isn't implemented yet.
 .EXAMPLE
    .\SensitiveCommandManager.ps1 -Action ignoreprocess -IgnoreProcess "parent.exe" -Executable "example.exe"
    Excludes the parent process "parent.exe" from triggering the Token.
-   Note: This function isn't implemented yet.
 #>
 
 Param (
@@ -53,7 +51,58 @@ Param (
     [string]$ApiKey,
     [string]$IgnoreUser,
     [string]$IgnoreProcess
-    )
+)
+
+function Show-Help {
+    Write-Host "Usage: "
+    Write-Host "    -Action <create|delete|ignoreuser|ignoreprocess> (Required)"
+    Write-Host "    -Executable <Name of the executable> (Required for create, delete, ignoreuser, ignoreprocess)"
+    Write-Host "    -Domain <Domain> (Required for create, delete)"
+    Write-Host "    -ApiKey <API Key> (Required for create, delete)"
+    Write-Host "    -IgnoreUser <User to ignore> (Required for ignoreuser)"
+    Write-Host "    -IgnoreProcess <Process to ignore> (Required for ignoreprocess)"
+    Write-Host "Example:"
+    Write-Host "    ./script.ps1 -Action create -Executable myapp -Domain mydomain -ApiKey myapikey"
+    Exit
+}
+
+# Check if required parameters are missing
+if (-not $Action) {
+    Write-Host "Error: The -Action parameter is required."
+    Show-Help
+}
+
+# Validate the required parameters for each action
+switch ($Action.ToLower()) {
+    "create" {
+        if (-not $Executable -or -not $Domain -or -not $ApiKey) {
+            Write-Host "Error: -Executable, -Domain, and -ApiKey are required for create/delete actions."
+            Show-Help
+        }
+    }
+    "delete" {
+        if (-not $Executable -or -not $Domain -or -not $ApiKey) {
+            Write-Host "Error: -Executable, -Domain, and -ApiKey are required for create/delete actions."
+            Show-Help
+        }
+    }
+    "ignoreuser" {
+        if (-not $IgnoreUser -or -not $Executable) {
+            Write-Host "Error: -IgnoreUser and -Executable are required for ignoreuser action."
+            Show-Help
+        }
+    }
+    "ignoreprocess" {
+        if (-not $IgnoreProcess -or -not $Executable) {
+            Write-Host "Error: -IgnoreProcess and -Executable are required for ignoreprocess action."
+            Show-Help
+        }
+    }
+    default {
+        Write-Host "Error: Invalid action specified."
+        Show-Help
+    }
+}
 
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Warning "This script requires administrative privileges. Please run the script as an administrator."
@@ -66,6 +115,14 @@ if ($Executable -like "*.exe") {
 } else {
 # Append ".exe" if not already present
     $Executable += ".exe"
+}
+
+# Check if $IgnoreProcess ends with ".exe" and remove it if it does
+if ($IgnoreProcess -like "*.exe") {
+    $IgnoreProcess_trim = $IgnoreProcess -replace "\.exe$", ""
+} else {
+# Append ".exe" if not already present
+    $IgnoreProcess += ".exe"
 }
 
 # Check if $Domain ends with ".canary.tools" and add it if it doesn't
@@ -93,14 +150,16 @@ function Create-Token {
         $Result = $CreateResult.result
         $TokenID = $($CreateResult).canarytoken.canarytoken
         $TokenHostname = $($CreateResult).canarytoken.hostname
+
+        Write-Host -ForegroundColor Green "Successfully Created Sensitive Command Token. ID: $($CreateResult.canarytoken.canarytoken) Reminder: $($CreateResult.canarytoken.memo)"
     }
     catch {
         Write-Host -ForegroundColor Red "Error occurred while creating token: $($_.Exception.Message)"
         Exit
     }
 
-    $MonitorProcess = 'cmd.exe /c start /min powershell.exe -windowstyle hidden -command "$($u=$(\"u$env:username\" -replace(''[^a-zA-Z0-9\-]+'', ''''))[0..63] -join '''';$c=$(\"c$env:computername\" -replace(''[^a-zA-Z0-9\-]+'', ''''))[0..63] -join '''';'+' Resolve-DnsName -Name \"$c.UN.$u-'+$Executable_trim+'.CMD.'+$TokenHostname+'\")"'
-
+    $MonitorProcess = 'cmd.exe /c start /min powershell.exe -windowstyle hidden -command "$($u=$(\"u$env:username\" -replace ''[^a-zA-Z0-9\-]+'', '''')[0..63] -join ''''; $c=$(\"c$env:computername\" -replace ''[^a-zA-Z0-9\-]+'', '''')[0..63] -join ''''; $id=\"\"; 1..8 | foreach-object { $id += [Char[]]\"abcdefhijklmnonpqrstuvwxyz0123456789\" | Get-Random }; Resolve-DnsName -Name \"$c.UN.$u.CMD.$id.'+$TokenHostname+'\")"'
+    
     # Create registry keys in both 64-bit and 32-bit hives.
     try {
         # Create Debug flag key for process in both hives
@@ -142,11 +201,11 @@ function Delete-Token {
         $MonitorProcessValue = Get-ItemPropertyValue -Path $RegistryPath -Name "MonitorProcess" -ErrorAction Stop
         
         # Extract the relevant information from the MonitorProcess value
-        $TokenHostname = $MonitorProcessValue -replace '.*\.CMD\.(.+?)\\.*', '$1'
+        $TokenHostname = $MonitorProcessValue -replace '.*\.CMD\.\$id\.(.+?)\\.*', '$1'
 
         # Extract the TokenID from TokenHostname
         $TokenID = $TokenHostname -replace '^(.*?)\..*', '$1'
-        
+
     }
     catch {
         Write-Host -ForegroundColor Red "Error occurred while searching for Token locally: $($_.Exception.Message)"
@@ -192,39 +251,110 @@ function Delete-Token {
 function Exclude-User {
     param (
         [string]$IgnoreUser,
-        [string]$Process
+        [string]$Executable
     )
 
-    Write-Host "Excluding user $IgnoreUser from monitoring process $Process"
-    Write-Host "Function not implemented yet"
-    Exit
+    Write-Host "Excluding user $IgnoreUser from monitoring process $Executable"
+
+    # Define the registry path
+    $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable"
+    
+    try {
+        # Get the MonitorProcess value from the registry
+        $MonitorProcessValue = Get-ItemPropertyValue -Path $RegistryPath -Name "MonitorProcess" -ErrorAction Stop
+        
+        # Extract the relevant information from the MonitorProcess value
+        $TokenHostname = $MonitorProcessValue -replace '.*\.CMD\.\$id\.(.+?)\\.*', '$1'
+
+        # Extract the TokenID from TokenHostname
+        $TokenID = $TokenHostname -replace '^(.*?)\..*', '$1'
+
+        Write-Host -ForegroundColor Green "Found installed Token. ID: $TokenID"
+        
+    }
+    catch {
+        Write-Host -ForegroundColor Red "Error occurred while searching for Token locally: $($_.Exception.Message)"
+    }
+
+    # Set new monitor process to ignore users
+    $MonitorProcess = 'cmd.exe /c start /min powershell.exe -windowstyle hidden -command "$($u=$(\"u$env:username\" -replace ''[^a-zA-Z0-9\-]+'', '''')[0..63] -join ''''; $c=$(\"c$env:computername\" -replace ''[^a-zA-Z0-9\-]+'', '''')[0..63] -join ''''; if ($env:username -in @('''+$IgnoreUser+''')) { exit }; $id=\"\"; 1..8 | foreach-object { $id += [Char[]]\"abcdefhijklmnonpqrstuvwxyz0123456789\" | Get-Random }; Resolve-DnsName -Name \"$c.UN.$u.CMD.$id.'+$TokenHostname+'\")"'
+
+   # Create registry keys in both 64-bit and 32-bit hives.
+    try {
+        # Set trigger process in both hives
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+
+        Write-Host -ForegroundColor Green "Successfully modified Token to ignore user: $IgnoreUser"   
+    }
+    catch {
+        Write-Host -ForegroundColor Red "Error occurred while setting registry key: $($_.Exception.Message)"
+        Exit
+    }
 }
 
 # Function to exclude parent process
 function Exclude-ParentProcess {
     param (
         [string]$IgnoreProcess,
-        [string]$Process
+        [string]$Executable
     )
 
-    Write-Host "Excluding parent process $IgnoreProcess from monitoring process $Process"
-    Write-Host "Function not implemented yet"
-    Exit
+    Write-Host "Excluding parent process $IgnoreProcess from monitoring process $Executable"
+
+    # Define the registry path
+    $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable"
+    
+    try {
+        # Get the MonitorProcess value from the registry
+        $MonitorProcessValue = Get-ItemPropertyValue -Path $RegistryPath -Name "MonitorProcess" -ErrorAction Stop
+        
+        # Extract the relevant information from the MonitorProcess value
+        $TokenHostname = $MonitorProcessValue -replace '.*\.CMD\.\$id\.(.+?)\\.*', '$1'
+
+        # Extract the TokenID from TokenHostname
+        $TokenID = $TokenHostname -replace '^(.*?)\..*', '$1'
+
+        Write-Host -ForegroundColor Green "Found installed Token. ID: $TokenID"        
+    }
+    catch {
+        Write-Host -ForegroundColor Red "Error occurred while searching for Token locally: $($_.Exception.Message)"
+    }
+
+    # Set new monitor process to ignore users
+    $MonitorProcess = 'cmd.exe /c powershell.exe -windowstyle hidden -Command "$a=(Get-CimInstance -ClassName win32_process -Filter ''ProcessID = %e''); $ppid = $a.ParentProcessID; $ppidc=$(Get-CimInstance Win32_Process -Filter \"ProcessID=$ppid\").CommandLine; if ($ppidc -match '''+$IgnoreProcess+''') { exit } else {$($u=$(\"u$env:username\" -replace(''[^a-zA-Z0-9\-]+'', ''''))[0..63] -join '''';$c=$(\"c$env:computername\" -replace(''[^a-zA-Z0-9\-]+'', ''''))[0..63] -join ''''; $id=\"\"; 1..8 | foreach-object { $id += [Char[]]\"abcdefhijklmnonpqrstuvwxyz0123456789\" | Get-Random }; Resolve-DnsName -Name \"$c.UN.$u.CMD.$id.'+$TokenHostname+'\")"}'
+
+   # Create registry keys in both 64-bit and 32-bit hives.
+    try {
+        # Set trigger process in both hives
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+
+        Write-Host -ForegroundColor Green "Successfully modified Token to ignore process: $IgnoreProcess"   
+    }
+    catch {
+        Write-Host -ForegroundColor Red "Error occurred while setting registry key: $($_.Exception.Message)"
+        Exit
+    }
 }
 
 # Execute appropriate function based on provided action parameter
-switch ($Action) {
+switch ($Action.ToLower()) {
     "create" {
+        Write-Host "Creating token for $Executable in $Domain"
         Create-Token -Executable $Executable -Domain $Domain -ApiKey $ApiKey
     }
     "delete" {
+        Write-Host "Deleting token for $Executable in $Domain"
         Delete-Token -Executable $Executable -Domain $Domain -ApiKey $ApiKey
     }
     "ignoreuser" {
-        Exclude-User -IgnoreUser $IgnoreUser -Process $Executable
+        Write-Host "Ignoring user $IgnoreUser for $Executable"
+        Exclude-User -IgnoreUser $IgnoreUser -Executable $Executable
     }
     "ignoreprocess" {
-        Exclude-ParentProcess -IgnoreProcess $IgnoreProcess -Process $Executable
+        Write-Host "Ignoring process $IgnoreProcess for $Executable"
+        Exclude-ParentProcess -IgnoreProcess $IgnoreProcess -Executable $Executable
     }
     default {
         Write-Host "Invalid action. Please provide a valid action."
