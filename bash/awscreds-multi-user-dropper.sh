@@ -39,7 +39,7 @@ for user_dir in $user_dirs; do
     fi
 
     # Create the token reminder
-    # AWS Profile name will be an md5 hash, if a specific named profile is prefered specify it below
+    # AWS Profile name will be an md5 hash, if a specific named profile is preferred specify it below
     if [ "$os_type" == "Darwin" ]; then
         # macOS
         new_profile=$(uuidgen | md5 | awk '{print $1}')

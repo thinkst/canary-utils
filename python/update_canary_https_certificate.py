@@ -12,7 +12,7 @@ Options:
     -apikey     Your Canary API Key (e.g., c6858257b6f32986d7b44)
     -node       The target Canary Node ID (e.g., 00000000fc738ff7)
     -key The new TLS private key .key file (e.g., /users/admin/canary_key.key)
-    -cert  The new TLS public certficate cert file (e.g., /users/admin/canary_cert.crt)
+    -cert  The new TLS public certificate cert file (e.g., /users/admin/canary_cert.crt)
 
 Example:
     update_canary_https_certificate.py -domain a123456b -apikey c6858257b6f32986d7b44 -node 00000000fc738ff7 -key '/Users/admin/Downloads/code.key' -cert '/Users/admin/Downloads/code.crt'
