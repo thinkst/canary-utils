@@ -25,7 +25,7 @@ Lines:
 - 8 : Your vault file
 - 11 : Your target region
 - 12 : Your Canary AMI
-- 13 : Preffered EC2 Instance name
+- 13 : Preferred EC2 Instance name
 - 15 : Target Subnet ID
 - 16 : Target security group
-- 34 : Any preffered tags
+- 34 : Any preferred tags

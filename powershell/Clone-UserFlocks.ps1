@@ -9,7 +9,7 @@
     Specify your Admin key required for authentication.
 
 .PARAMETER sourceUser
-    Tthe source user whose flocks will be cloned.
+    The source user whose flocks will be cloned.
 
 .PARAMETER targetUser
     The target user who will be assigned the cloned flocks.

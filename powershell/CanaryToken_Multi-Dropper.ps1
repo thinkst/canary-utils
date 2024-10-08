@@ -461,7 +461,7 @@ Deploy-Token_Sensitive_command
 # Tokens an executable.
 function Deploy-Token_Signed_EXE{
     param (
-        [string]$TokenTemplate = "C:\Users\Administrator\Downloads\cports.exe", # Path to the exectuable you'd like to Token.
+        [string]$TokenTemplate = "C:\Users\Administrator\Downloads\cports.exe", # Path to the executable you'd like to Token.
         [string]$TargetDirectory = "c:\exe_directory" # Local location to drop the token into. (The executable will keep it's name.)
     )
 
