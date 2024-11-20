@@ -1,0 +1,4 @@
+<?php
+    $AUTH_TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+    $DOMAIN     = "xxxxxxxx";
+?>
