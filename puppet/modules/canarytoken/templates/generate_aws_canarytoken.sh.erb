@@ -1,0 +1,44 @@
+#!/bin/bash
+# Script to generate and deploy an AWS Canarytoken
+
+# Variables
+console="<%= @console %>"
+token="<%= @token %>"
+tokenmemo="Fake AWS Creds on host: <%= @facts['networking']['hostname'] %> username: <%= @facts['identity']['user'] %>"
+flock="<%= @flock %>"
+filepath="<%= @filepath %>"
+filename="<%= @filename %>"
+fullpath="${filepath}/${filename}"
+
+# Get FlockID from Flock name
+flockid=$(curl -s -k "https://${console}/api/v1/flocks/filter?auth_token=${token}&filter_str=${flock}" | grep -Eo '"flock_id":.*?[^\\]",' | awk -F '[":"]' '{print $5,$6}' OFS=":")
+if [ -z "$flockid" ]; then
+  echo "Failed to fetch FlockID"
+  exit 1
+fi
+
+# Create the token
+awscreds=$(curl -s https://${console}/api/v1/canarytoken/create \
+  -d auth_token=${token} \
+  -d memo="${tokenmemo}" \
+  -d kind=aws-id \
+  -d flock_id=${flockid})
+if [ -z "$awscreds" ]; then
+  echo "Failed to create Canarytoken"
+  exit 1
+fi
+
+# Write credentials to file
+echo "[default]" > "${fullpath}"
+echo "$awscreds" | grep -oE "aws_access_key_id = .{20}" >> "${fullpath}"
+echo "$awscreds" | grep -Eo "aws_secret_access_key = .{40}" >> "${fullpath}"
+
+# Cleanup sensitive variables
+unset console
+unset token
+unset tokenmemo
+unset flock
+unset flockid
+
+echo "AWS credentials deployed to ${fullpath}"
+exit 0
