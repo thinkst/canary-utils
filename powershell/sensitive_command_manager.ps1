@@ -282,12 +282,12 @@ function Exclude-User {
    # Create registry keys in 32-bit hive.
     try {
         # Set trigger process
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
 
         Write-Host -ForegroundColor Green "Successfully modified Token to ignore user: $IgnoreUser in 32-bit hive"   
     }
     catch {
-        Write-Host -ForegroundColor Red "Error occurred while setting registry key in 32-bit Hive: $($_.Exception.Message)"
+        Write-Host -ForegroundColor Red "Error occurred while setting registry key in 32-bit Hive. It's likely that you have not installed the Token in both hives.`n $($_.Exception.Message)"
     }
     
    # Create registry keys in 64-bit hive
@@ -298,7 +298,7 @@ function Exclude-User {
         Write-Host -ForegroundColor Green "Successfully modified Token to ignore user in 64-bit hive: $IgnoreUser"   
     }
     catch {
-        Write-Host -ForegroundColor Red "Error occurred while setting registry key in 64-bit hive: $($_.Exception.Message)"
+        Write-Host -ForegroundColor Red "Error occurred while setting registry key in 64-bit hive.  It's likely that you have not installed the Token in both hives.`n $($_.Exception.Message)"
     }
 
     Write-Host -ForegroundColor Green "Excluding User Action complete, good bye!"
