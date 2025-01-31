@@ -256,40 +256,29 @@ function Exclude-User {
 
     Write-Host "Excluding user $IgnoreUser from monitoring process $Executable"
 
-    # Define the registry path
-    $RegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable"
-    
-    try {
-        # Get the MonitorProcess value from the registry
-        $MonitorProcessValue = Get-ItemPropertyValue -Path $RegistryPath -Name "MonitorProcess" -ErrorAction Stop
-        
-        # Extract the relevant information from the MonitorProcess value
-        $TokenHostname = $MonitorProcessValue -replace '.*\.CMD\.\$id\.(.+?)\\.*', '$1'
-
-        # Extract the TokenID from TokenHostname
-        $TokenID = $TokenHostname -replace '^(.*?)\..*', '$1'
-
-        Write-Host -ForegroundColor Green "Found installed Token. ID: $TokenID"
-        
-    }
-    catch {
-        Write-Host -ForegroundColor Red "Error occurred while searching for Token locally: $($_.Exception.Message)"
-    }
+    # Define the registry paths
+    $RegistryPath64 = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable"
+    $RegistryPath32 = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable"
 
     # Set new monitor process to ignore users
     $MonitorProcess = 'cmd.exe /c start /min powershell.exe -windowstyle hidden -command "$($u=$(\"u$env:username\" -replace ''[^a-zA-Z0-9\-]+'', '''')[0..63] -join ''''; $c=$(\"c$env:computername\" -replace ''[^a-zA-Z0-9\-]+'', '''')[0..63] -join ''''; if ($env:username -in @('''+$IgnoreUser+''')) { exit }; $id=\"\"; 1..8 | foreach-object { $id += [Char[]]\"abcdefhijklmnonpqrstuvwxyz0123456789\" | Get-Random }; Resolve-DnsName -Name \"$c.UN.$u.CMD.$id.'+$TokenHostname+'\")"'
 
-   # Create registry keys in both 64-bit and 32-bit hives.
+    # Try setting the registry key in 64-bit hive
     try {
-        # Set trigger process in both hives
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\SilentProcessExit\$Executable" -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
-
-        Write-Host -ForegroundColor Green "Successfully modified Token to ignore user: $IgnoreUser"   
+        New-ItemProperty -Path $RegistryPath64 -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+        Write-Host -ForegroundColor Green "Successfully modified registry key in 64-bit hive: $RegistryPath64"
     }
     catch {
-        Write-Host -ForegroundColor Red "Error occurred while setting registry key: $($_.Exception.Message)"
-        Exit
+        Write-Host -ForegroundColor Yellow "Failed to modify registry key in 64-bit hive: $($_.Exception.Message)"
+    }
+
+    # Try setting the registry key in 32-bit hive
+    try {
+        New-ItemProperty -Path $RegistryPath32 -Name "MonitorProcess" -Value $MonitorProcess -PropertyType String -Force -ErrorAction Stop | Out-Null
+        Write-Host -ForegroundColor Green "Successfully modified registry key in 32-bit hive: $RegistryPath32"
+    }
+    catch {
+        Write-Host -ForegroundColor Yellow "Failed to modify registry key in 32-bit hive: $($_.Exception.Message)"
     }
 }
 
