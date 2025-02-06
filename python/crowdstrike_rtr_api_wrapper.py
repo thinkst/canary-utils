@@ -129,8 +129,8 @@ def list_available_scripts(falcon_rtr_admin):
 
     for index, script in enumerate(scripts, start=1):
         script_name = script.get("name", "Unknown")
-        print(f"{index}. {script_name}")  # ✅ Only show script name (NO ID)
-        script_dict[index] = script_name  # ✅ Store script name for selection
+        print(f"{index}. {script_name}")
+        script_dict[index] = script_name
 
     while True:
         try:
@@ -152,7 +152,7 @@ def batch_initialize_sessions(falcon_rtr, device_ids, queue_offline):
     batch_response = falcon_rtr.batch_init_sessions(
         body={
             "host_ids": device_ids,
-            "queue_offline": queue_offline  # ✅ Ensures offline hosts are queued
+            "queue_offline": queue_offline
         }
     )
 
@@ -164,7 +164,6 @@ def batch_initialize_sessions(falcon_rtr, device_ids, queue_offline):
     if not batch_id:
         print("⚠️ Batch initialization completed, but no session was started. Checking if hosts were queued...")
 
-    # ✅ Track offline hosts that were successfully queued
     queued_sessions = []
     for device_id, session_data in batch_response["body"]["resources"].items():
         if session_data["offline_queued"]:
@@ -235,7 +234,7 @@ def get_host_id_from_hostname(hosts, hostname):
     device_id = response.get("body", {}).get("resources", [])[0]
     print(f"✅ Found Device ID for {hostname}: {device_id}")
 
-    return [device_id]  # ✅ Return a **list** since batch_init_sessions expects a list
+    return [device_id]
 
 def get_host_ids_from_group(falcon_host_group, group_name):
     """Retrieve device IDs from a specified host group using wildcard matching."""
@@ -277,11 +276,10 @@ def main():
     else:
         print("🔵 `queue_offline` is DISABLED: Commands will only run on currently online hosts.")
 
-    # ✅ Initialize CrowdStrike API Modules
     falcon_rtr = RealTimeResponse(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
     falcon_rtr_admin = RealTimeResponseAdmin(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
     falcon_host_group = HostGroup(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
-    hosts = Hosts(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)  # ✅ Needed for resolving hostnames
+    hosts = Hosts(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 
     if EXISTING_SCRIPT_NAME:
         script_name = EXISTING_SCRIPT_NAME
