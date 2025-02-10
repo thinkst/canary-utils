@@ -39,8 +39,7 @@ options:
 ### Binary Chirp
 **Author:** Thinkst (Gareth)  
 **Purpose:**
-```
-Proof of concept prjoct which uses pyinstaller to embed Tokens into python scripts then creates small Tokened executables of them.
+Proof of concept project which uses pyinstaller to embed Tokens into python scripts then creates small Tokened executables of them.
 
 chirp_template.py - This is a simple example binary, out of the box it simply grabs some fingerprinting detail about the host and fires of a Token adding the grabbed data as additional information. This serves as a great framework that can be fully edited to pretend to be anything else.
  
@@ -53,7 +52,7 @@ The host building your binaries will need python3 installed and the following de
 pip install requests pyinstaller dnspython
  
 Once built, the Tokened binaries can be placed on hosts without the need for python to be installed.
-```
+
 **Usage:** `# python3 token__builder.py`
 
 ### canaryconsole.py
@@ -69,7 +68,6 @@ Once built, the Tokened binaries can be placed on hosts without the need for pyt
 ### crowdstrike_rtr_api_wrapper.py
 **Author:** Thinkst (Gareth)  
 **Purpose:**
-```
 Crowdstrike RTR wrapper using [falconpy](https://www.falconpy.io/).
 
 Used to easily upload and execute a deployment script across multiple endpoints, either online or offline. 
@@ -77,7 +75,7 @@ Used to easily upload and execute a deployment script across multiple endpoints,
 Paired well with out deployment article [here](https://help.canary.tools/hc/en-gb/articles/5779584032541-Deploying-Canarytokens-using-Crowdstrike-Falcon).
 
 Thank you to [TaigaWalker](https://github.com/TaigaWalk/Cyber-Deception) for inspiring this script with his previous work to make Token deployment via RTR easier.
-```
+
 **Usage:** `# python3 crowdstrike_rtr_api_wrapper.py -h`
 
 ### delete_tokens.py
