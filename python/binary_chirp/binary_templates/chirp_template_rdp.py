@@ -1,52 +1,65 @@
-import socket
-import os
-import platform
-import base64
-import re
-import random
-import secrets
-import dns.resolver
-import subprocess
+import os, socket, platform, time, uuid, urllib.request, urllib.parse, getpass, secrets, subprocess
 
-HOSTNAME = (socket.gethostname())
-OS_NAME = (os.name)
-OS_PLATFORM = (platform.system())
-OS_RELEASE = (platform.release())
-OS_USERNAME = (os.getlogin())
+def safe_get(func, default="unknown"):
+    try:
+        return func()
+    except Exception:
+        return default
 
-# The template file must have this variable (exactly as is) as this is replaced from the builder scrip.
-TOKEN_DOMAIN = 'abc123.o3n.io'
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 80))
+        return s.getsockname()[0]
+    except Exception:
+        return "unknown"
+    finally:
+        s.close()
 
-resolver = dns.resolver.Resolver(configure=False)
-resolver.nameservers = ['8.8.8.8']
-answer = resolver.resolve(TOKEN_DOMAIN)
+def gather_system_info():
+    mac_int = safe_get(uuid.getnode, default=0)
+    mac_address = "unknown" if mac_int == 0 else ':'.join([f'{(mac_int >> ele) & 0xff:02x}' for ele in range(0, 8*6, 8)][::-1])
+    return {
+        'hostname': safe_get(socket.gethostname),
+        'os_name': safe_get(lambda: os.name),
+        'os_platform': safe_get(platform.system),
+        'os_release': safe_get(platform.release),
+        'machine': safe_get(platform.machine),
+        'processor': safe_get(platform.processor),
+        'current_user': safe_get(getpass.getuser, default=os.environ.get('USER', "unknown")),
+        'local_time': safe_get(time.ctime),
+        'mac_address': mac_address,
+        'local_ip': safe_get(get_local_ip),
+        'RDP_HOST': RDP_HOST
+    }
 
-print('[*] Welcome to the RDP gateway app.')
-print('[*] Which host would you like to remote into?: (Default AD_DC_01)')
+def trigger_token(endpoint_url):
+    data = gather_system_info()
+    encoded_data = urllib.parse.urlencode(data).encode('utf-8')
+    req = urllib.request.Request(endpoint_url, data=encoded_data, method='POST')
+    try:
+        urllib.request.urlopen(req)
+    except Exception:
+        pass
 
-RDP_HOST = input()
+def fake():
+    print('[*] Welcome to the RDP gateway app.')
+    print('[*] Which host would you like to remote into?: (Default AD_DC_01)')
 
-if not RDP_HOST:
-    RDP_HOST = 'AD_DC_01'
+    global RDP_HOST
+    RDP_HOST = input()
 
-data = "user: {os_username}, hostname: {hostname}, OS: {os_name}|{os_platform}|{os_release}, rdphost: {rdp_host}".format(
-    hostname=HOSTNAME,
-    os_name=OS_NAME,
-    os_platform=OS_PLATFORM,
-    os_release=OS_RELEASE,
-    rdp_host=RDP_HOST,
-    os_username=OS_USERNAME
-)
+    if not RDP_HOST:
+        RDP_HOST = 'AD_DC_01'
 
-CHIRP_DOMAIN = '.'.join(filter(lambda x: x,re.split(r'(.{63})', base64.b32encode(data.encode('utf8')).decode('utf8').replace('=','')) + ['G'+str(random.randint(10,99)), TOKEN_DOMAIN]))
+    print('[*] Launching RDP to: '+RDP_HOST)
+    print('Username: Administrator')
+    print('Password: {}'.format(secrets.token_urlsafe(30)))
 
-resolver.nameservers = [answer.rrset[0].to_text(True)]
-answer2 = resolver.resolve(CHIRP_DOMAIN)
+    subprocess.call('mstsc /v:'+RDP_HOST)
 
-print('[*] Launching RDP to: '+RDP_HOST)
-print('Username: Administrator')
-print('Password: {}'.format(secrets.token_urlsafe(30)))
+    x = input("Press Any key to exit")
 
-subprocess.call('mstsc /v:'+RDP_HOST)
-
-x = input("Press Any key to exit")
+if __name__ == '__main__':
+    fake()
+    trigger_token("http://example.com")
