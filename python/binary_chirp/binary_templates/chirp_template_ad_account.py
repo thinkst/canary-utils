@@ -1,6 +1,6 @@
 import os, socket, platform, time, uuid, urllib.request, urllib.parse, getpass, secrets
 
-def safe_get(func, default="unknown"):
+def safe_get(func, default='unknown'):
     try:
         return func()
     except Exception:
@@ -12,13 +12,13 @@ def get_local_ip():
         s.connect(('8.8.8.8', 80))
         return s.getsockname()[0]
     except Exception:
-        return "unknown"
+        return 'unknown'
     finally:
         s.close()
 
 def gather_system_info():
     mac_int = safe_get(uuid.getnode, default=0)
-    mac_address = "unknown" if mac_int == 0 else ':'.join([f'{(mac_int >> ele) & 0xff:02x}' for ele in range(0, 8*6, 8)][::-1])
+    mac_address = 'unknown' if mac_int == 0 else ':'.join([f'{(mac_int >> ele) & 0xff:02x}' for ele in range(0, 8*6, 8)][::-1])
     return {
         'hostname': safe_get(socket.gethostname),
         'os_name': safe_get(lambda: os.name),
@@ -26,7 +26,7 @@ def gather_system_info():
         'os_release': safe_get(platform.release),
         'machine': safe_get(platform.machine),
         'processor': safe_get(platform.processor),
-        'current_user': safe_get(getpass.getuser, default=os.environ.get('USER', "unknown")),
+        'current_user': safe_get(getpass.getuser, default=os.environ.get('USER', 'unknown')),
         'local_time': safe_get(time.ctime),
         'mac_address': mac_address,
         'local_ip': safe_get(get_local_ip),
@@ -53,8 +53,8 @@ def fake(): # Write your fake function here
     print('Username: {}'.format(AD_USER))
     print('Password: {}'.format(secrets.token_urlsafe(30)))
 
-    x = input("Press Any key to exit")
+    x = input('Press Any key to exit')
 
 if __name__ == '__main__':
     fake()
-    trigger_token("http://example.com")
+    trigger_token('http://example.com')
