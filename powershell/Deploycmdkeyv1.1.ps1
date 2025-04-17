@@ -8,5 +8,5 @@ Param (
 Add-Type -AssemblyName System.Web
 #Generates Random password. Edit last 2 numbers for password complexity. Length, Symbols
 $Password=[System.Web.Security.Membership]::GeneratePassword(15,5)
-cmdkey /generic:TERMSRV/$BIRDNAME /user:$env:username" /pass:$PASSWORD
+cmdkey /generic:TERMSRV/$BIRDNAME /user:"$env:username" /pass:$PASSWORD
 Write-Output "Credential added to $env:COMPUTERNAME with $Password"
