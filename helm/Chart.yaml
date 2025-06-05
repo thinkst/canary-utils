@@ -1,0 +1,4 @@
+apiVersion: v2
+name: canary-chart
+description: A Helm chart to deploy a canary pod with docker repository credentials
+version: 0.1.0

@@ -1,0 +1,16 @@
+namespace: default
+
+image:
+  name: docker.io/thinkstcanary/dockercanary
+  digest: sha256:e8228633730897597dcb54fcc33545c3b865fd3ab7742ced847923679a59ac8d
+  pullPolicy: IfNotPresent
+
+secrets:
+  name: canarydockercreds
+  dockerconfigjson: "eyJ...9fQ=="
+
+env:
+  CONSOLE_PUBLIC_KEY: "Oe...="
+  LISTEN_DOMAIN: "abc123.cnr.io"
+  AUTOCOMMISSION_TOKEN: "10...a5"
+  NODE_ID_SEED: "1"

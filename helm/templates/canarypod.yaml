@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: canarypod
+  namespace: {{ .Values.namespace }}
+spec:
+  containers:
+    - name: canarydocker
+      image: "{{ .Values.image.name }}@{{ .Values.image.digest }}"
+      imagePullPolicy: {{ .Values.image.pullPolicy }}
+      env:
+        - name: CONSOLE_PUBLIC_KEY
+          value: {{ .Values.env.CONSOLE_PUBLIC_KEY | quote }}
+        - name: LISTEN_DOMAIN
+          value: {{ .Values.env.LISTEN_DOMAIN | quote }}
+        - name: AUTOCOMMISSION_TOKEN
+          value: {{ .Values.env.AUTOCOMMISSION_TOKEN | quote }}
+        - name: NODE_ID_SEED
+          value: {{ .Values.env.NODE_ID_SEED | quote }}
+  imagePullSecrets:
+    - name: {{ .Values.secrets.name }}
