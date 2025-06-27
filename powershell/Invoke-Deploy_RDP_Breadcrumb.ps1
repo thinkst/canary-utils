@@ -1,4 +1,4 @@
- # Breadcrumb dropper
+# Breadcrumb dropper
 $ConsoleDomain = 'CONSOLE.canary.tools' 
 $AuthToken = 'APIKEY' # ReadOnly API Key, the Breadcrumb API endpoint does not currently support FactoryAuth
 
@@ -10,8 +10,13 @@ function Deploy-Breadcrumb{
     param (
         [string]$FileExtension = 'rdp',
         [string[]]$CanaryNodes = @("<nodeID>", "<nodeID>"),
-        [string]$BreadcrumbPath = 'C:\'
+        [string]$BreadcrumbPath = 'C:\Access'
     )
+
+    # Ensure the folder exists
+    if (-not (Test-Path -Path $BreadcrumbPath)) {
+        New-Item -ItemType Directory -Path $BreadcrumbPath -Force | Out-Null
+    }
 
     # Select a random <nodeID> to reference for BreadCrumb
     $randomNode = $CanaryNodes | Get-Random
@@ -28,7 +33,7 @@ function Deploy-Breadcrumb{
 
     $CanaryResult = Invoke-RestMethod @params 
     $CanaryName = $CanaryResult.device.name
-    $OutputFileName = "$BreadcrumbPath$CanaryName.$FileExtension"
+    $OutputFileName = Join-Path -Path $BreadcrumbPath -ChildPath "$CanaryName.$FileExtension"
 
     $params = @{
         Uri = "https://$ConsoleDomain/api/v1/breadcrumb/download"
