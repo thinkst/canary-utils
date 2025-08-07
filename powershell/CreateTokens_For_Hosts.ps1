@@ -6,12 +6,16 @@ Set-StrictMode -Version 2.0
 # Connect to API
 $ApiHost = [string]::Empty
 Do {
-    $ApiHost = Read-Host -Prompt "Enter your Canary API domain"
+    $ApiHost = Read-Host -Prompt "Enter your Canary Console domain: (e.g., abc123.canary.tools)"
 } Until (($ApiHost.Length -gt 0) -and ((Resolve-DnsName -DnsOnly -NoHostsFile -Name $ApiHost -Type A -ErrorAction SilentlyContinue)[0].IPAddress))
 $ApiTokenSecure = New-Object System.Security.SecureString
 Do {
-    $ApiTokenSecure = Read-Host -AsSecureString -Prompt "Enter your Canary API key"
+    $ApiTokenSecure = Read-Host -AsSecureString -Prompt "Enter your Canary API key: "
 } Until ($ApiTokenSecure.Length -gt 0)
+$TargetDirectory = [string]::Empty
+Do {
+    $TargetDirectory = Read-Host -Prompt "Enter your intented target directory: (e.g., C:\backups\secrets.xlsx)"
+} Until ($TargetDirectory -gt 0)
 $ApiToken = (New-Object System.Management.Automation.PSCredential "user",$ApiTokenSecure).GetNetworkCredential().Password
 $ApiBaseURL = '/api/v1'
 $PingResult = Invoke-RestMethod -Method Get -Uri "https://$ApiHost$ApiBaseURL/ping?auth_token=$ApiToken"
@@ -37,18 +41,18 @@ $Targets = (
 ForEach ($TargetHostname in $Targets) {
 
     # Check whether token already exists
-    $OutputFileName = "$TargetHostname-MSWORD.docx"
+    $OutputFileName = "$TargetHostname-MSEXCEL.xlsx"
     If (Test-Path $OutputFileName) {
         Write-Host Skipping $TargetHostname, file already exists.
         Continue        
     }
 
     # Create token
-    $TokenName = "$TargetHostname-MSWORD"
+    $TokenName = "$TargetHostname-MSEXCEL"
     $PostData = @{
         auth_token = "$ApiToken"
-        kind = "doc-msword"
-        memo = "$TokenName"
+        kind = "doc-msexcel"
+        memo = "$TokenName - $TargetDirectory"
         flock_id = "$FlockID" # Add Flock ID to the request
     }
     $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ApiHost$ApiBaseURL/canarytoken/create" -Body $PostData
@@ -64,4 +68,3 @@ ForEach ($TargetHostname in $Targets) {
     # Download token
     Invoke-RestMethod -Method Get -Uri "https://$ApiHost$ApiBaseURL/canarytoken/download?auth_token=$ApiToken&canarytoken=$WordTokenID" -OutFile "$OutputFileName"
 }
- 
