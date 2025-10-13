@@ -655,6 +655,113 @@ Deploy-Token_Word_Macro
 
 ####################################################################################################################################################################################################################################
 
+#Drops a MySQL Dump Token
+#Function to expand GZ on Windows
+
+function Expand-GZipFile {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$SourceFile,
+
+        [Parameter(Mandatory = $false)]
+        [string]$DestinationFile
+    )
+
+    if (-not $DestinationFile) {
+        $DestinationFile = [System.IO.Path]::ChangeExtension($SourceFile, $null)
+    }
+
+    if (-not (Test-Path $SourceFile)) {
+        Write-Host -ForegroundColor Red "[X] Source file not found, $SourceFile"
+        return
+    }
+
+    try {
+        $input = [System.IO.File]::OpenRead($SourceFile)
+        $gzip = New-Object System.IO.Compression.GzipStream(
+            $input,
+            [System.IO.Compression.CompressionMode]::Decompress
+        )
+        $output = [System.IO.File]::Create($DestinationFile)
+
+        $gzip.CopyTo($output)
+
+        $gzip.Dispose()
+        $output.Dispose()
+        $input.Dispose()
+
+        Write-Host -ForegroundColor Green "[*] Extracted ${SourceFile} to $DestinationFile"
+
+        # Delete the original .gz file after successful extraction
+        Remove-Item -Path $SourceFile -Force
+        Write-Host -ForegroundColor Yellow "[*] Removed compressed file: $SourceFile"
+    }
+    catch {
+        Write-Host -ForegroundColor Red "[X] Extraction failed for ${SourceFile}: $($_.Exception.Message)"
+    }
+}
+
+#Function to deploy MySQL Dump Token
+function Deploy-MySQL_Dump {
+    param (
+        [string]$TokenType = 'mysql-dump',
+        [string]$TokenFilename = "prod-db-dump.sql.gz",
+        [string]$TargetDirectory = "C:\db-backup\"
+    )
+
+    $OutputFileName = Join-Path $TargetDirectory $TokenFilename
+
+    if (-not (Test-Path $TargetDirectory)) {
+        New-Item -ItemType Directory -Force -ErrorAction Stop -Path $TargetDirectory > $null
+    }
+
+    if (Test-Path $OutputFileName) {
+        Write-Host -ForegroundColor Yellow "[*] File already exists, $OutputFileName"
+    }
+    else {
+        $PostData = @{
+            factory_auth = "$FactoryAuth"
+            kind         = "$TokenType"
+            memo         = "$([System.Net.Dns]::GetHostName()) - $TargetDirectory"
+            industry     = "corporate"
+        }
+
+        try {
+            $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $PostData
+        }
+        catch {
+            Write-Host -ForegroundColor Red "[X] Token creation request failed: $($_.Exception.Message)"
+            return
+        }
+
+        $Result = $CreateResult.result
+        if ($Result -ne 'success') {
+            Write-Host -ForegroundColor Red "[X] Creation of $OutputFileName failed"
+            return
+        }
+
+        $TokenID = $CreateResult.canarytoken.canarytoken
+
+        try {
+            Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile $OutputFileName
+            Write-Host -ForegroundColor Green "[*] Token downloaded to: $OutputFileName"
+        }
+        catch {
+            Write-Host -ForegroundColor Red "[X] Download failed: $($_.Exception.Message)"
+            return
+        }
+    }
+
+    # Extract and remove gz file
+    Expand-GZipFile -SourceFile $OutputFileName
+
+    Write-Host -ForegroundColor Green "[*] Token script complete on $env:COMPUTERNAME"
+}
+
+Deploy-MySQL_Dump
+
+####################################################################################################################################################################################################################################
+
 # Create RDP Shortcut pointing towards a Canary and adds a entry into credential manager.
 # Note : this should be accessible from your Tokened Host.
 
