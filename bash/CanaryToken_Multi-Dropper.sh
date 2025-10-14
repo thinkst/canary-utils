@@ -398,4 +398,42 @@ create_token_wireguard
 
 ####################################################################################################################################################################################################################################
 
+#Drops an MySQL Dump Token
+create_token_MySQLDump(){
+TokenType="mysql-dump"
+#Set Token target directory here.
+TargetDirectory="mysqldump_directory"
+#Set Token file name here
+TokenFilename="database-dump.sql.gz"
+
+OUTPUTFILENAME="$TargetDirectory/$TokenFilename"
+
+if [ -f "$OUTPUTFILENAME" ];
+then
+printf "\n \e[1;33m $OUTPUTFILENAME already exists.";
+return
+fi
+
+CREATE_TOKEN=$(curl -L -s -X POST --tlsv1.2 --tls-max 1.2 "https://${DOMAIN}/api/v1/canarytoken/factory/create" -d factory_auth=$FACTORYAUTH -d memo="'"$HOSTNAME" "-" "$OUTPUTFILENAME"'" -d kind=$TokenType)
+
+if [[ $CREATE_TOKEN == *"\"result\": \"success\""* ]];
+then
+TOKEN_ID=$(printf "$CREATE_TOKEN" | grep -o '"canarytoken": ".*"' | sed 's/"canarytoken": //' | sed 's/"//g')
+else
+printf "\n \e[1;31m $OUTPUTFILENAME Token failed to be created."
+return
+fi
+
+curl -L -s -G --tlsv1.2 --tls-max 1.2 --create-dirs --output "$OUTPUTFILENAME" -J "https://$DOMAIN/api/v1/canarytoken/factory/download" -d factory_auth=$FACTORYAUTH -d canarytoken=$TOKEN_ID
+
+printf "\n \e[1;32m $OUTPUTFILENAME Successfully Created"
+
+# Decompress the gzipped SQL dump
+    gunzip -f "$OUTPUTFILENAME"
+
+}
+create_token_MySQLDump
+
+####################################################################################################################################################################################################################################
+
 printf "\n \e[1;32m [*] Token Dropper Complete."
