@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Tunnel-vision
+    canary-dns-diagnostics
 .DESCRIPTION
     Discovers and analyses the DNS environment to ensure it's ripe for Canary communication.
 
@@ -23,15 +23,15 @@
 .PARAMETER Verbose
     Enable detailed output to see the actual DNS queries and responses for each test
 .EXAMPLE
-    .\tunnel-vision.ps1
+    .\canary-dns-diagnostics.ps1
     Analyses all system DNS servers
 .EXAMPLE
-    .\tunnel-vision.ps1 -DnsServer 192.2.0.1
+    .\canary-dns-diagnostics.ps1 -DnsServer 192.2.0.1
 .EXAMPLE
-    .\tunnel-vision.ps1 -DomainHash abc123
+    .\canary-dns-diagnostics.ps1 -DomainHash abc123
     Targets a specific domain hash.
 .EXAMPLE
-    .\tunnel-vision.ps1 -Verbose
+    .\canary-dns-diagnostics.ps1 -Verbose
     Run with detailed output to see actual DNS queries and responses
 #>
 
@@ -43,27 +43,6 @@ param(
     [Parameter()]
     [string]$DomainHash = "6b42426d"
 )
-
-Write-Host @"                                                                                   
-   _____________________________________________________
-  |Tunnel Vision:                                      |
-  |A tool to diagnose the DNS tunnel used by Canaries. |
-  |This tool is best paired with a support query.      |
-  |Feel free to reach out to support@canary.tools      |
-  |_______________  ___________________________________|
-     ....        / /
-   /[0][0]\      //
-  (   \/   )
-   )      (
- (          )
-(            )
- (          )
-  [        ]
- --/\ --- /\-----
----------------
-  /   /
- /___/                                                                                        
-"@ -ForegroundColor Yellow
 
 Write-Host "=== DNS Environment Discovery ===" -ForegroundColor Cyan
 Write-Host "Analyzing your DNS configuration...`n"
@@ -447,6 +426,7 @@ public class ServerCertificateValidationCallback {
     }
 
     Write-Host ""
+    Write-Host "This tool is best paired with a support query. Feel free to reach out to support@canary.tools if your Canaries are having trouble communicating."
 }
 
 Write-Host "================================================" -ForegroundColor Cyan
