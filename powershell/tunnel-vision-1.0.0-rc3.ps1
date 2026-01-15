@@ -6,7 +6,7 @@
     Discovers and analyses the DNS environment to ensure it's ripe for Canary communication.
 
     Canaries don't communicate directly with a Canary Console and instead make use of DNS Tunnelling.
-    This means that they exclusively generate DNS lookups (UDP/53) in order to alert, update and get new settings.
+    This means that they exclusively generate DNS lookups to alert, update and get new settings.
 
     A typical communication path would originate from the Canary, sent to your internal DNS server
     which then recursively makes its way out to the internet.
