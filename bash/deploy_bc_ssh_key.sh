@@ -34,8 +34,11 @@ node_id="0000000011111111" # optional
 ssh_alias=""
 canary_ip=""
 
-# ssh_port is option and will only be used if specified (and not 22)
+# ssh_port is optional and will only be used if specified (and not 22)
 ssh_port=""
+
+# Skip system/shared folders commonly found on macOS, if you want to skip over specific users, add below
+skip_users=(Shared .localized)
 
 HOSTNAME=$(hostname)
 
@@ -66,9 +69,6 @@ require_node_or_alias_and_ip() {
 OS="$(detect_os)"
 
 deploy_ssh_breadcrumb() {
-    # Skip system/shared folders commonly found on macOS, if you want to skip over specific users, add below
-    skip_users=(Shared .localized)
-
     USERS_DIR="/home" 
     if [[ "$OS" == "macos" ]]; then
         USERS_DIR="/Users" 
@@ -131,6 +131,7 @@ deploy_ssh_breadcrumb() {
             continue
         fi
 
+        # Parse API response with jq, if jq not present, fall back to grep & awk
         if command -v jq >/dev/null 2>&1; then
             private_key="$(printf '%s' "$response" | jq -r '.private_key')"
             public_key="$(printf '%s' "$response" | jq -r '.public_key')" # not used but available if you want to use it
