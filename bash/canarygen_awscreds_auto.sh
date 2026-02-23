@@ -37,8 +37,8 @@ TOKENMEMO="${HOSTNAME} - ${USER} - ${OUTFILE}"
 # Call API (capture body + http code)
 RESP_TMP="$(mktemp)"
 HTTP_CODE="$(
-  curl -sS -o "${RESP_TMP}" -w "%{http_code}" "https://${CONSOLE}/api/v1/canarytoken/factory/create" \
-    -d "factory_auth=${AUTH_TOKEN}" \
+  curl -sS -o "${RESP_TMP}" -w "%{http_code}" "https://${CONSOLE}/api/v1/canarytoken/create" \
+    -d "auth_token=${AUTH_TOKEN}" \
     -d "memo=${TOKENMEMO}" \
     -d "kind=aws-id" || echo "000"
 )"
