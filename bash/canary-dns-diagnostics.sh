@@ -45,73 +45,131 @@ vlog() { if [[ "$VERBOSE" -eq 1 ]]; then printf " > %s\n" "$*"; fi; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# Last DNS query failure reason (best-effort)
+DNS_LAST_ERROR=""
+
 # Best-effort DNS query helper.
 # Outputs result text to stdout, exit 0 on success.
 dns_query() {
   local qtype="$1" qname="$2" server="${3:-}"
 
-  # Prefer resolvectl if present (common on systemd distros)
-  if have resolvectl; then
-    local cmd=(resolvectl query)
-    # resolvectl supports -t for record type on many versions
-    # If -t fails, it will error and we fall through.
-    if [[ -n "$server" ]]; then
-      cmd+=(--server="$server")
-    fi
-    cmd+=(-t "$qtype" "$qname")
-    vlog "Query via resolvectl: ${cmd[*]}"
-    "${cmd[@]}" 2>/dev/null && return 0
+  DNS_LAST_ERROR=""
+
+  if ! have nslookup; then
+    DNS_LAST_ERROR="missing nslookup"
+    log "ERROR: Missing required DNS tool: nslookup"
+    log "       Install 'dnsutils' (Debian/Ubuntu) or 'bind-utils' (Fedora/RHEL)."
+    return 127
   fi
 
-  # dig (dnsutils/bind-utils) if installed
-  if have dig; then
-    local cmd=(dig +tries=1 +time=2 +nocmd +noall +answer)
-    if [[ -n "$server" ]]; then
-      cmd+=("@$server")
-    fi
-    if [[ "$qtype" == "TXT-CH" ]]; then
-      cmd=(dig +tries=1 +time=2 +nocmd +noall +answer CH TXT "$qname")
-      if [[ -n "$server" ]]; then cmd+=("@$server"); fi
-      vlog "Query via dig: ${cmd[*]}"
-      "${cmd[@]}" 2>/dev/null && return 0
-    fi
-
-    cmd+=("$qname" "$qtype")
-    vlog "Query via dig: ${cmd[*]}"
-    "${cmd[@]}" 2>/dev/null && return 0
+  local cmd
+  if [[ -n "$server" ]]; then
+    cmd="nslookup -timeout=2 -retry=1 -type=${qtype} ${qname} ${server}"
+  else
+    cmd="nslookup -timeout=2 -retry=1 -type=${qtype} ${qname}"
   fi
+  vlog "Query via nslookup: $cmd"
 
-  # nslookup
-  if have nslookup; then
-    local cmd
-    if [[ -n "$server" ]]; then
-      cmd="nslookup -type=${qtype} ${qname} ${server}"
-    else
-      cmd="nslookup -type=${qtype} ${qname}"
-    fi
-    vlog "Query via nslookup: $cmd"
-    bash -c "$cmd" 2>/dev/null && return 0
+  local _raw rc
+  _raw="$(bash -c "$cmd" 2>&1)"; rc=$?
+  if [[ $rc -eq 0 ]]; then
+    printf "%s\n" "$_raw"
+    return 0
   fi
-
-  # host
-  if have host; then
-    local cmd=(host -W 2 -t "$qtype" "$qname")
-    if [[ -n "$server" ]]; then cmd+=("$server"); fi
-    vlog "Query via host: ${cmd[*]}"
-    "${cmd[@]}" 2>/dev/null && return 0
-  fi
-
-  # getent fallback (very limited: A/AAAA via libc resolver)
-  if [[ "$qtype" == "A" || "$qtype" == "AAAA" ]]; then
-    if have getent; then
-      vlog "Query via getent (limited): getent ahosts $qname"
-      getent ahosts "$qname" 2>/dev/null && return 0
-    fi
-  fi
-
+  DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+  [[ -z "$DNS_LAST_ERROR" ]] && DNS_LAST_ERROR="query failed"
   return 1
 }
 
+
+# Lightweight DNS helpers used by upstream/public-IP checks.
+# These avoid non-standard query types (e.g. TXT-CH) and reduce dependence on wrapper output formats.
+dns_txt() { # dns_txt <name> <server>
+  local name="$1" server="$2"
+
+  DNS_LAST_ERROR=""
+
+  if ! have nslookup; then
+    DNS_LAST_ERROR="missing nslookup"
+    log "ERROR: Missing required DNS tool: nslookup"
+    log "       Install 'dnsutils' (Debian/Ubuntu) or 'bind-utils' (Fedora/RHEL)."
+    return 127
+  fi
+
+  local _raw rc
+  _raw="$(nslookup -timeout=2 -retry=1 -type=txt "$name" "$server" 2>&1)"; rc=$?
+  if [[ $rc -ne 0 ]]; then
+    DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+    return 1
+  fi
+  printf "%s\n" "$_raw" | sed -n 's/.*text = "\(.*\)".*/\1/p'
+  return 0
+}
+
+
+dns_a() { # dns_a <name> <server>
+  local name="$1" server="$2"
+
+  DNS_LAST_ERROR=""
+
+  if ! have nslookup; then
+    DNS_LAST_ERROR="missing nslookup"
+    log "ERROR: Missing required DNS tool: nslookup"
+    log "       Install 'dnsutils' (Debian/Ubuntu) or 'bind-utils' (Fedora/RHEL)."
+    return 127
+  fi
+
+  local _raw rc
+  _raw="$(nslookup -timeout=2 -retry=1 -type=a "$name" "$server" 2>&1)"; rc=$?
+  if [[ $rc -ne 0 ]]; then
+    DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+    return 1
+  fi
+  printf "%s\n" "$_raw" | awk '/^Address: / {print $2}' | tail -n 1
+  return 0
+}
+
+ptr_best_effort() { # ptr_best_effort <ip> [server]
+  local ip="$1" server="${2:-}"
+
+  DNS_LAST_ERROR=""
+
+  if ! have nslookup; then
+    DNS_LAST_ERROR="missing nslookup"
+    log "ERROR: Missing required DNS tool: nslookup"
+    log "       Install 'dnsutils' (Debian/Ubuntu) or 'bind-utils' (Fedora/RHEL)."
+    return 127
+  fi
+
+  local _raw rc
+  if [[ -n "$server" ]]; then
+    _raw="$(nslookup -timeout=2 -retry=1 "$ip" "$server" 2>&1)"; rc=$?
+  else
+    _raw="$(nslookup -timeout=2 -retry=1 "$ip" 2>&1)"; rc=$?
+  fi
+  if [[ $rc -ne 0 ]]; then
+    DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+    return 1
+  fi
+  printf "%s\n" "$_raw" | awk -F'= ' '/name =/ {print $2}' | sed 's/\.$//' | head -n 1
+  return 0
+}
+
+public_ip_http() {
+  local ip=""
+  if have curl; then
+    ip="$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || true)"
+    [[ -z "$ip" ]] && ip="$(curl -fsS --max-time 5 https://icanhazip.com 2>/dev/null | tr -d '
+' || true)"
+    [[ -z "$ip" ]] && ip="$(curl -fsS --max-time 5 https://ifconfig.me/ip 2>/dev/null | tr -d '
+' || true)"
+  elif have wget; then
+    ip="$(wget -qO- --timeout=5 https://api.ipify.org 2>/dev/null || true)"
+    [[ -z "$ip" ]] && ip="$(wget -qO- --timeout=5 https://icanhazip.com 2>/dev/null | tr -d '
+' || true)"
+  fi
+  printf "%s" "$ip"
+}
 discover_dns_servers() {
   local servers=()
 
@@ -349,67 +407,147 @@ for dnsIP in "${DNS_SERVERS[@]}"; do
       printf " Enabled\n"
     fi
   fi
+# Helpers (DNS tooling)
 
-  # [6] Upstream resolver (Google special TXT)
-  printf "[6] Upstream DNS Check (Google):"
-  if out="$(dns_query TXT "o-o.myaddr.l.google.com" "$dnsIP")"; then
-    upip="$(echo "$out" | sed -n 's/.*"\([0-9.]\+\)".*/\1/p' | head -n 1)"
-    if [[ -n "$upip" ]]; then
-      # PTR via upstream IP directly (best effort)
-      uphn=""
-      if out2="$(dns_query PTR "$upip" "$upip" 2>/dev/null)"; then
-        uphn="$(echo "$out2" | awk '/PTR/ {print $NF}' | sed 's/\.$//' | head -n 1)"
-      fi
-      if [[ -n "$uphn" ]]; then
-        printf " %s (%s)\n" "$upip" "$uphn"
-      else
-        printf " %s\n" "$upip"
-      fi
+dns_txt() { # dns_txt <name> <server>
+  local name="$1" server="$2"
+  DNS_LAST_ERROR=""
+  if ! command -v nslookup >/dev/null 2>&1; then
+    DNS_LAST_ERROR="missing nslookup"
+    return 127
+  fi
+  local _raw rc
+  _raw="$(nslookup -timeout=2 -retry=1 -type=txt "$name" "$server" 2>&1)"; rc=$?
+  if [[ $rc -ne 0 ]]; then
+    DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+    return 1
+  fi
+  printf "%s\n" "$_raw" | sed -n 's/.*text = "\(.*\)".*/\1/p'
+  return 0
+}
+
+dns_a() { # dns_a <name> <server>
+  local name="$1" server="$2"
+  DNS_LAST_ERROR=""
+  if ! command -v nslookup >/dev/null 2>&1; then
+    DNS_LAST_ERROR="missing nslookup"
+    return 127
+  fi
+  local _raw rc
+  _raw="$(nslookup -timeout=2 -retry=1 -type=a "$name" "$server" 2>&1)"; rc=$?
+  if [[ $rc -ne 0 ]]; then
+    DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+    return 1
+  fi
+  printf "%s\n" "$_raw" | awk '/^Address: / {print $2}' | tail -n 1
+  return 0
+}
+
+ptr_best_effort() { # ptr_best_effort <ip> [server]
+  local ip="$1" server="${2:-}"
+  DNS_LAST_ERROR=""
+  if ! command -v nslookup >/dev/null 2>&1; then
+    DNS_LAST_ERROR="missing nslookup"
+    return 127
+  fi
+  local _raw rc
+  if [[ -n "$server" ]]; then
+    _raw="$(nslookup -timeout=2 -retry=1 "$ip" "$server" 2>&1)"; rc=$?
+  else
+    _raw="$(nslookup -timeout=2 -retry=1 "$ip" 2>&1)"; rc=$?
+  fi
+  if [[ $rc -ne 0 ]]; then
+    DNS_LAST_ERROR="$(echo "$_raw" | head -n 1 | tr -d '\r')"
+    return 1
+  fi
+  printf "%s\n" "$_raw" | awk -F'= ' '/name =/ {print $2}' | sed 's/\.$//' | head -n 1
+  return 0
+}
+
+# [6] Upstream resolver (Google special TXT)
+printf "[6] Upstream DNS Check (Google):"
+if out="$(dns_query TXT "o-o.myaddr.l.google.com" "$dnsIP")"; then
+  upip="$(echo "$out" | sed -n 's/.*"\([0-9.]\+\)".*/\1/p' | head -n 1)"
+  [[ -z "$upip" ]] && upip="$(echo "$out" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n 1)"
+  if [[ -n "$upip" ]]; then
+    # Best effort PTR using the same resolver (avoid querying the upstream IP as a DNS server)
+    uphn=""
+    if out2="$(dns_query PTR "$upip" "$dnsIP" 2>/dev/null)"; then
+      uphn="$(echo "$out2" | awk '/PTR/ {print $NF}' | sed 's/\.$//' | head -n 1)"
+    fi
+    if [[ -n "$uphn" ]]; then
+      printf " %s (%s)\n" "$upip" "$uphn"
     else
-      printf " Unable to detect\n"
+      printf " %s\n" "$upip"
     fi
   else
-    printf " Unable to detect\n"
+    printf " Unable to detect (no IP in response)\n"
   fi
-
-  # [7] Upstream resolver (Akamai whoami)
-  printf "[7] Upstream DNS Check (Akamai):"
-  if out="$(dns_query A "whoami.akamai.net" "$dnsIP")"; then
-    akip="$(echo "$out" | awk '/\sA\s/ {print $NF}' | head -n 1)"
-    if [[ -n "$akip" ]]; then
-      akhn=""
-      if out2="$(dns_query PTR "$akip" "$akip" 2>/dev/null)"; then
-        akhn="$(echo "$out2" | awk '/PTR/ {print $NF}' | sed 's/\.$//' | head -n 1)"
-      fi
-      if [[ -n "$akhn" ]]; then
-        printf " %s (%s)\n" "$akip" "$akhn"
-      else
-        printf " %s\n" "$akip"
-      fi
+else
+  # Provide a helpful reason for failure (missing tooling vs query blocked/timeout)
+  if ! have nslookup; then
+    printf " Unable to detect (missing DNS tooling: nslookup)\n"
+  else
+    reason="$(nslookup -timeout=2 -retry=1 -type=txt o-o.myaddr.l.google.com "$dnsIP" 2>&1 | head -n 1 | tr -d '\r\n')"
+    if [[ -n "$reason" ]]; then
+      printf " Unable to detect (%s)\n" "$reason"
     else
-      printf " Unable to detect\n"
+      printf " Unable to detect (query failed)\n"
+    fi
+  fi
+fi
+
+# [7] Upstream resolver (Akamai whoami)
+printf "[7] Upstream DNS Check (Akamai):"
+if out="$(dns_query A "whoami.akamai.net" "$dnsIP")"; then
+  akip="$(echo "$out" | awk '/\sA\s/ {print $NF}' | head -n 1)"
+  [[ -z "$akip" ]] && akip="$(echo "$out" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n 1)"
+  if [[ -n "$akip" ]]; then
+    # Best effort PTR using the same resolver (avoid querying the upstream IP as a DNS server)
+    akhn=""
+    if out2="$(dns_query PTR "$akip" "$dnsIP" 2>/dev/null)"; then
+      akhn="$(echo "$out2" | awk '/PTR/ {print $NF}' | sed 's/\.$//' | head -n 1)"
+    fi
+    if [[ -n "$akhn" ]]; then
+      printf " %s (%s)\n" "$akip" "$akhn"
+    else
+      printf " %s\n" "$akip"
     fi
   else
-    printf " Unable to detect\n"
+    printf " Unable to detect (no IP in response)\n"
   fi
-
-  # [8] Public IP (Cloudflare whoami via DNS, best effort)
-  printf "[8] Public IP:"
-  if out="$(dns_query TXT-CH "whoami.cloudflare" "1.1.1.1")"; then
-    pub="$(echo "$out" | sed -n 's/.*"\(.*\)".*/\1/p' | head -n 1)"
-    if [[ -n "$pub" ]]; then
-      printf " %s\n" "$pub"
-    else
-      printf " Unable to detect\n"
-    fi
+else
+  if ! have nslookup; then
+    printf " Unable to detect (missing DNS tooling: nslookup)\n"
   else
-    printf " Unable to detect\n"
+    reason="$(nslookup -timeout=2 -retry=1 -type=a whoami.akamai.net "$dnsIP" 2>&1 | head -n 1 | tr -d '\r\n')"
+    if [[ -n "$reason" ]]; then
+      printf " Unable to detect (%s)\n" "$reason"
+    else
+      printf " Unable to detect (query failed)\n"
+    fi
   fi
+fi
 
-  log ""
-  log "================================================"
-  log "DNS Resolution & Performance Tests"
-  log "================================================"
+# [8] Public IP (HTTP, best effort)
+printf "[8] Public IP:"
+pub=""
+if command -v curl >/dev/null 2>&1; then
+  pub="$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || true)"
+  [[ -z "$pub" ]] && pub="$(curl -fsS --max-time 5 https://icanhazip.com 2>/dev/null | tr -d '\r\n' || true)"
+  [[ -z "$pub" ]] && pub="$(curl -fsS --max-time 5 https://ifconfig.me/ip 2>/dev/null | tr -d '\r\n' || true)"
+elif command -v wget >/dev/null 2>&1; then
+  pub="$(wget -qO- --timeout=5 https://api.ipify.org 2>/dev/null || true)"
+  [[ -z "$pub" ]] && pub="$(wget -qO- --timeout=5 https://icanhazip.com 2>/dev/null | tr -d '\r\n' || true)"
+fi
+
+if [[ -n "$pub" ]]; then
+  printf " %s\n" "$pub"
+else
+  printf " Unable to detect\n"
+fi
+
+
 
   # [9] Basic resolution example.com
   printf "\n[9] Basic Resolution (example.com):"
@@ -456,17 +594,25 @@ for dnsIP in "${DNS_SERVERS[@]}"; do
 
   for i in $(seq 1 20); do
     start="$(ms_since)"
-    out="$(dns_query TXT "$qname" "$dnsIP" 2>/dev/null || true)"
+    out="$(dns_query TXT "$qname" "$dnsIP" 2>&1 || true)"
+    rc=$?
     end="$(ms_since)"
     ms="$(ms_diff "$start" "$end")"
 
-    # Extract TXT payload and measure its length
-    txt="$(printf "%s" "$out" | sed -n 's/.*TXT[[:space:]]*"\{0,1\}\(.*\)"\{0,1\}.*/\1/p' | tr -d '"[:space:]')"
-    if [[ -n "$txt" && "${#txt}" -ge 250 ]]; then
-      total_ms=$(( total_ms + ms ))
-      success=$((success+1))
+    if [[ "$rc" -eq 0 ]]; then
+      # Extract TXT payload across common resolver outputs by concatenating quoted chunks
+      # (handles: text = "..." , TXT "..." , and split TXT strings)
+      txt="$(printf "%s" "$out" | grep -oE '"[^"]*"' | tr -d '"' | tr -d '\r\n')"
+      if [[ -n "$txt" && "${#txt}" -ge 250 ]]; then
+        total_ms=$(( total_ms + ms ))
+        success=$((success+1))
+      else
+        fail=$((fail+1))
+        [[ "$VERBOSE" -eq 1 ]] && printf " < rate-test parse failed (len=%s)\n" "${#txt}"
+      fi
     else
       fail=$((fail+1))
+      [[ "$VERBOSE" -eq 1 ]] && printf "%s\n" "$out" | head -n 1 | sed 's/^/ < /'
     fi
   done
 
@@ -503,10 +649,6 @@ for dnsIP in "${DNS_SERVERS[@]}"; do
   ip="$(https_trace_ip || true)"
   if [[ -n "$ip" ]]; then
     printf " %s" "$ip"
-    issuer="$(cert_issuer || true)"
-    if [[ -n "$issuer" ]]; then
-      printf " Cert Issuer: %s" "$issuer"
-    fi
     printf "\n"
   else
     printf " Failed\n"
