@@ -466,67 +466,49 @@ ptr_best_effort() { # ptr_best_effort <ip> [server]
 
 # [6] Upstream resolver (Google special TXT)
 printf "[6] Upstream DNS Check (Google):"
-if out="$(dns_query TXT "o-o.myaddr.l.google.com" "$dnsIP")"; then
-  upip="$(echo "$out" | sed -n 's/.*"\([0-9.]\+\)".*/\1/p' | head -n 1)"
-  [[ -z "$upip" ]] && upip="$(echo "$out" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n 1)"
+if out="$(dns_txt "o-o.myaddr.l.google.com" "$dnsIP")"; then
+  upip="$(printf "%s
+" "$out" | grep -E '^[0-9A-Fa-f:.]+$' | head -n 1)"
   if [[ -n "$upip" ]]; then
-    # Best effort PTR using the same resolver (avoid querying the upstream IP as a DNS server)
-    uphn=""
-    if out2="$(dns_query PTR "$upip" "$dnsIP" 2>/dev/null)"; then
-      uphn="$(echo "$out2" | awk '/PTR/ {print $NF}' | sed 's/\.$//' | head -n 1)"
-    fi
-    if [[ -n "$uphn" ]]; then
-      printf " %s (%s)\n" "$upip" "$uphn"
-    else
-      printf " %s\n" "$upip"
-    fi
+    printf " %s
+" "$upip"
   else
-    printf " Unable to detect (no IP in response)\n"
+    printf " Unable to detect (no IP in response)
+"
   fi
 else
-  # Provide a helpful reason for failure (missing tooling vs query blocked/timeout)
   if ! have nslookup; then
-    printf " Unable to detect (missing DNS tooling: nslookup)\n"
+    printf " Unable to detect (missing DNS tooling: nslookup)
+"
   else
-    reason="$(nslookup -timeout=2 -retry=1 -type=txt o-o.myaddr.l.google.com "$dnsIP" 2>&1 | head -n 1 | tr -d '\r\n')"
+    reason="$(nslookup -timeout=2 -retry=1 -type=txt o-o.myaddr.l.google.com "$dnsIP" 2>&1 | head -n 1 | tr -d '
+')"
     if [[ -n "$reason" ]]; then
-      printf " Unable to detect (%s)\n" "$reason"
+      printf " Unable to detect (%s)
+" "$reason"
     else
-      printf " Unable to detect (query failed)\n"
+      printf " Unable to detect (query failed)
+"
     fi
   fi
 fi
 
-# [7] Upstream resolver (Akamai whoami)
+# [7] Upstream resolver (Akamai)
 printf "[7] Upstream DNS Check (Akamai):"
-if out="$(dns_query A "whoami.akamai.net" "$dnsIP")"; then
-  akip="$(echo "$out" | awk '/\sA\s/ {print $NF}' | head -n 1)"
-  [[ -z "$akip" ]] && akip="$(echo "$out" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n 1)"
+if have dig; then
+  out="$(dig +short TXT whoami.ds.akahelp.net @"$dnsIP" 2>&1)"
+  akip="$(printf "%s
+" "$out" | sed 's/^"//; s/"$//' | awk -F'" "' '$1 == "ns" && $2 ~ /^[0-9A-Fa-f:.]+$/ { print $2; exit }')"
   if [[ -n "$akip" ]]; then
-    # Best effort PTR using the same resolver (avoid querying the upstream IP as a DNS server)
-    akhn=""
-    if out2="$(dns_query PTR "$akip" "$dnsIP" 2>/dev/null)"; then
-      akhn="$(echo "$out2" | awk '/PTR/ {print $NF}' | sed 's/\.$//' | head -n 1)"
-    fi
-    if [[ -n "$akhn" ]]; then
-      printf " %s (%s)\n" "$akip" "$akhn"
-    else
-      printf " %s\n" "$akip"
-    fi
+    printf " %s
+" "$akip"
   else
-    printf " Unable to detect (no IP in response)\n"
+    printf " Unable to detect (no IP in response)
+"
   fi
 else
-  if ! have nslookup; then
-    printf " Unable to detect (missing DNS tooling: nslookup)\n"
-  else
-    reason="$(nslookup -timeout=2 -retry=1 -type=a whoami.akamai.net "$dnsIP" 2>&1 | head -n 1 | tr -d '\r\n')"
-    if [[ -n "$reason" ]]; then
-      printf " Unable to detect (%s)\n" "$reason"
-    else
-      printf " Unable to detect (query failed)\n"
-    fi
-  fi
+  printf " Unable to detect (missing DNS tooling: dig)
+"
 fi
 
 # [8] Public IP (HTTP, best effort)
