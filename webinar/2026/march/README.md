@@ -19,7 +19,7 @@ canary_webroot/
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 # For --headless mode only (SPAs: React, Vue, Svelte, etc.)
 playwright install chromium

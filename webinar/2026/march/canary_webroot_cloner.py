@@ -17,14 +17,14 @@ Usage:
     python canary_webroot_cloner.py https://10.0.0.50 --depth 2 --output my_webroot --zip
 
     # For SPAs (React, Vue, Svelte, etc.) that render via client-side JS:
-    python canary_webroot_cloner.py http://192.168.1.50:8080 --headless --strip-js
+    python canary_webroot_cloner.py http://192.168.1.50:8080 --headless
 
 Requirements (stdlib only except for common libs):
-    pip install requests beautifulsoup4
-    pip install playwright && playwright install chromium   # only for --headless
+    uv pip install -r requirements.txt
+    playwright install chromium   # only for --headless
 """
 
-import argparse
+import click
 import os
 import re
 import shutil
@@ -295,7 +295,6 @@ class HeadlessSiteCloner:
 
             browser.close()
 
-        local_path = normalise_path(final_url, self.base_netloc) or "index.html"
         # Always save the entry point as index.html so the Canary serves it
         local_path = "index.html"
         self.html_pages.append(local_path)
@@ -389,14 +388,14 @@ class HeadlessSiteCloner:
         d._404_redirect_url = self._404_redirect_url
         return d
 
-    def _generate_posted_files(self):
-        SiteCloner._generate_posted_files(self._make_delegate())
+    def generate_posted_files(self):
+        SiteCloner.generate_posted_files(self._make_delegate())
 
-    def _generate_error_pages(self):
-        SiteCloner._generate_error_pages(self._make_delegate())
+    def generate_error_pages(self):
+        SiteCloner.generate_error_pages(self._make_delegate())
 
-    def _generate_config(self):
-        SiteCloner._generate_config(self._make_delegate())
+    def generate_config(self):
+        SiteCloner.generate_config(self._make_delegate())
 
 
 class SiteCloner:
@@ -607,7 +606,7 @@ class SiteCloner:
 
     # ---- .posted file generation -----------------------------------------
 
-    def _generate_posted_files(self):
+    def generate_posted_files(self):
         """For every HTML page that contains a <form>, create a matching
         .posted file so the Canary returns a realistic failed-login response
         after capturing POST data."""
@@ -662,7 +661,7 @@ class SiteCloner:
 
     # ---- error pages ------------------------------------------------------
 
-    def _generate_error_pages(self):
+    def generate_error_pages(self):
         """Write 403.html and 404.html, preferring real captured responses."""
         for code, title, captured in [
             ("403", "Forbidden",  self._captured_403_html),
@@ -700,7 +699,7 @@ class SiteCloner:
 
     # ---- config.toml ------------------------------------------------------
 
-    def _generate_config(self):
+    def generate_config(self):
         """Write a thinkst-canary-metadata/config.toml.
 
         Per-page sections set response_code = 200 for any page that has a
@@ -762,9 +761,9 @@ class SiteCloner:
             return
 
         self._probe_error_pages()
-        self._generate_posted_files()
-        self._generate_error_pages()
-        self._generate_config()
+        self.generate_posted_files()
+        self.generate_error_pages()
+        self.generate_config()
 
         print(f"\n{'='*60}")
         print(f"Done. {len(self.html_pages)} page(s), "
@@ -789,88 +788,41 @@ class SiteCloner:
 # CLI
 # ---------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Clone an internal website into a Thinkst Canary custom webroot."
-    )
-    parser.add_argument(
-        "url",
-        help="Base URL of the target web server (e.g. http://10.0.0.50)",
-    )
-    parser.add_argument(
-        "-o", "--output",
-        default="canary_webroot",
-        help="Output directory name (default: canary_webroot)",
-    )
-    parser.add_argument(
-        "-d", "--depth",
-        type=int,
-        default=1,
-        help="How many levels of links to follow (default: 1)",
-    )
-    parser.add_argument(
-        "-z", "--zip",
-        action="store_true",
-        help="Also produce a .zip file ready for upload",
-    )
-    parser.add_argument(
-        "--verify-ssl",
-        action="store_true",
-        help="Verify SSL certificates (default: off for internal servers)",
-    )
-    parser.add_argument(
-        "--timeout",
-        type=int,
-        default=15,
-        help="HTTP request timeout in seconds (default: 15)",
-    )
-    parser.add_argument(
-        "--headless",
-        action="store_true",
-        help=(
-            "Use a headless Chromium browser to render the page before saving. "
-            "Required for SPAs (React, Vue, Svelte, etc.) that render via JS. "
-            "Requires: pip install playwright && playwright install chromium"
-        ),
-    )
-    parser.add_argument(
-        "--strip-js",
-        action="store_true",
-        default=True,
-        help="Remove <script> tags from saved HTML (default: on with --headless)",
-    )
-    parser.add_argument(
-        "--keep-js",
-        action="store_true",
-        help="Keep <script> tags when using --headless (overrides --strip-js)",
-    )
-    args = parser.parse_args()
+@click.command(help="Clone an internal website into a Thinkst Canary custom webroot.")
+@click.argument("url")
+@click.option("-o", "--output", default="canary_webroot", help="Output directory name (default: canary_webroot)")
+@click.option("-d", "--depth", type=int, default=1, help="How many levels of links to follow (default: 1)")
+@click.option("-z", "--zip", "make_zip", is_flag=True, help="Also produce a .zip file ready for upload")
+@click.option("--verify-ssl", is_flag=True, help="Verify SSL certificates (default: off for internal servers)")
+@click.option("--timeout", type=int, default=15, help="HTTP request timeout in seconds (default: 15)")
+@click.option("--headless", is_flag=True, help="Use headless Chromium for JS-rendered SPAs. Requires: playwright install chromium")
+@click.option("--keep-js", is_flag=True, help="Keep <script> tags (stripped by default in headless mode)")
+def main(url, output, depth, make_zip, verify_ssl, timeout, headless, keep_js):
+    strip_js = not keep_js  # default strip; --keep-js disables it
 
-    strip_js = not args.keep_js  # default strip; --keep-js disables it
-
-    if args.headless:
+    if headless:
         cloner = HeadlessSiteCloner(
-            base_url=args.url,
-            output_dir=args.output,
+            base_url=url,
+            output_dir=output,
             strip_js=strip_js,
-            verify_ssl=args.verify_ssl,
-            timeout=args.timeout,
+            verify_ssl=verify_ssl,
+            timeout=timeout,
         )
         cloner.clone()
-        cloner._generate_posted_files()
-        cloner._generate_error_pages()
-        cloner._generate_config()
+        cloner.generate_posted_files()
+        cloner.generate_error_pages()
+        cloner.generate_config()
     else:
         cloner = SiteCloner(
-            base_url=args.url,
-            output_dir=args.output,
-            depth=args.depth,
-            verify_ssl=args.verify_ssl,
-            timeout=args.timeout,
+            base_url=url,
+            output_dir=output,
+            depth=depth,
+            verify_ssl=verify_ssl,
+            timeout=timeout,
         )
         cloner.clone()
 
-    if args.zip:
+    if make_zip:
         cloner.make_zip()
 
     print("Next steps:")
