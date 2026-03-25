@@ -47,13 +47,7 @@ import click
 import requests
 from bs4 import BeautifulSoup
 from playwright.sync_api import Error as PlaywrightError
-from playwright.sync_api import sync_playwright
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
+from playwright.sync_api import Response, sync_playwright
 
 def normalise_path(url: str, base_netloc: str) -> str | None:
     """Return a local file path for *url* if it belongs to the target site,
@@ -86,12 +80,6 @@ def disable_insecure_request_warnings() -> None:
     import urllib3
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-# ---------------------------------------------------------------------------
-# Shared base
-# ---------------------------------------------------------------------------
-
 
 class BaseSiteCloner:
     def __init__(
@@ -336,12 +324,6 @@ class BaseSiteCloner:
         )
         return zip_path
 
-
-# ---------------------------------------------------------------------------
-# Requests-based cloner
-# ---------------------------------------------------------------------------
-
-
 class RequestsSiteCloner(BaseSiteCloner):
     def __init__(
         self,
@@ -513,12 +495,6 @@ class RequestsSiteCloner(BaseSiteCloner):
     def _clone_site(self) -> None:
         self._crawl_page(self.base_url, 0)
 
-
-# ---------------------------------------------------------------------------
-# Headless cloner
-# ---------------------------------------------------------------------------
-
-
 class HeadlessSiteCloner(BaseSiteCloner):
     """Uses Playwright to render JS-heavy SPAs before saving assets.
 
@@ -557,7 +533,7 @@ class HeadlessSiteCloner(BaseSiteCloner):
             f"Strip JS: {self.strip_js}",
         ]
 
-    def _intercept_response(self, response) -> None:
+    def _intercept_response(self, response: Response) -> None:
         """Store every response body so we can save assets without re-fetching."""
         try:
             ct = response.headers.get("content-type", "")
@@ -600,7 +576,7 @@ class HeadlessSiteCloner(BaseSiteCloner):
     ) -> str:
         css_dir = str(Path(local_css_path).parent)
 
-        def _replace_url(match):
+        def _replace_url(match: re.Match[str]) -> str:
             raw = match.group(1).strip("'\"")
             if raw.startswith("data:"):
                 return match.group(0)
@@ -611,7 +587,7 @@ class HeadlessSiteCloner(BaseSiteCloner):
                 return f"url('{rel}')"
             return match.group(0)
 
-        def _replace_import(match):
+        def _replace_import(match: re.Match[str]) -> str:
             raw = match.group(1).strip("'\"")
             if raw.startswith("data:") or raw.startswith("http"):
                 return match.group(0)
@@ -769,12 +745,6 @@ class HeadlessSiteCloner(BaseSiteCloner):
         self._process_html(rendered_html, local_path, session)
         self._rewrite_downloaded_css_files(session)
 
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
-
-
 @click.command(help="Clone an internal website into a Thinkst Canary custom webroot.")
 @click.argument("url")
 @click.option(
@@ -818,7 +788,19 @@ class HeadlessSiteCloner(BaseSiteCloner):
     is_flag=True,
     help="Keep <script> tags (stripped by default in headless mode)",
 )
-def main(url, output, depth, make_zip, verify_ssl, timeout, headless, keep_js):
+def main(
+    url=None,
+    output="canary_webroot",
+    depth=1,
+    make_zip=False,
+    verify_ssl=False,
+    timeout=15,
+    headless=False,
+    keep_js=False,
+):
+    if url is None:
+        raise click.UsageError("URL is required")
+
     strip_js = not keep_js
 
     if headless:
