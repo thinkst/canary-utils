@@ -49,6 +49,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import Response, sync_playwright
 
+
 def normalise_path(url: str, base_netloc: str) -> str | None:
     """Return a local file path for *url* if it belongs to the target site,
     otherwise None."""
@@ -80,6 +81,7 @@ def disable_insecure_request_warnings() -> None:
     import urllib3
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 class BaseSiteCloner:
     def __init__(
@@ -324,6 +326,7 @@ class BaseSiteCloner:
         )
         return zip_path
 
+
 class RequestsSiteCloner(BaseSiteCloner):
     def __init__(
         self,
@@ -494,6 +497,7 @@ class RequestsSiteCloner(BaseSiteCloner):
 
     def _clone_site(self) -> None:
         self._crawl_page(self.base_url, 0)
+
 
 class HeadlessSiteCloner(BaseSiteCloner):
     """Uses Playwright to render JS-heavy SPAs before saving assets.
@@ -744,6 +748,7 @@ class HeadlessSiteCloner(BaseSiteCloner):
         self._save_intercepted_resources()
         self._process_html(rendered_html, local_path, session)
         self._rewrite_downloaded_css_files(session)
+
 
 @click.command(help="Clone an internal website into a Thinkst Canary custom webroot.")
 @click.argument("url")
