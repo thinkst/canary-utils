@@ -5,6 +5,7 @@
 #   "beautifulsoup4",
 #   "click",
 #   "requests",
+#   "playwright",
 # ]
 # ///
 """
@@ -21,15 +22,17 @@ Output: a folder (and optional zip) containing:
   - thinkst-canary-metadata/config.toml (minimal)
 
 Usage:
-    python canary_webroot_cloner.py https://10.0.0.50
-    python canary_webroot_cloner.py https://10.0.0.50 --depth 2 --output my_webroot --zip
+    ./canary_webroot_cloner.py https://10.0.0.50
+    ./canary_webroot_cloner.py https://10.0.0.50 --depth 2 --output my_webroot --zip
 
     # For SPAs (React, Vue, Svelte, etc.) that render via client-side JS:
-    python canary_webroot_cloner.py http://192.168.1.50:8080 --headless
+    ./canary_webroot_cloner.py http://192.168.1.50:8080 --headless
 
-Requirements (stdlib only except for common libs):
-    uv pip install -r requirements.txt
-    playwright install chromium   # only for --headless
+Requirements:
+    Dependencies installed inline with uv.
+
+    If using --headless:
+        uv run --with playwright python -m playwright install chromium
 """
 
 import click
@@ -41,20 +44,10 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, unquote
 
-try:
-    import requests
-    from bs4 import BeautifulSoup
-except ImportError:
-    sys.exit(
-        "Missing dependencies. Install them with:\n"
-        "  pip install requests beautifulsoup4"
-    )
-
-try:
-    from playwright.sync_api import sync_playwright
-    PLAYWRIGHT_AVAILABLE = True
-except ImportError:
-    PLAYWRIGHT_AVAILABLE = False
+import requests
+from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
+from playwright.sync_api import Error as PlaywrightError
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -92,11 +85,6 @@ class HeadlessSiteCloner:
 
     def __init__(self, base_url: str, output_dir: str, strip_js: bool = True,
                  verify_ssl: bool = False, timeout: int = 30):
-        if not PLAYWRIGHT_AVAILABLE:
-            sys.exit(
-                "Playwright is not installed. Install it with:\n"
-                "  pip install playwright && playwright install chromium"
-            )
         self.base_url = base_url.rstrip("/")
         self.base_netloc = urlparse(self.base_url).netloc
         self.output_dir = Path(output_dir)
@@ -259,49 +247,56 @@ class HeadlessSiteCloner:
         if not self.verify_ssl:
             import urllib3
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                ctx = browser.new_context(
+                    ignore_https_errors=True,
+                    color_scheme="dark",  # ensure dark-mode SPAs render with dark theme
+                )
+                page = ctx.new_page()
 
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            ctx = browser.new_context(
-                ignore_https_errors=True,
-                color_scheme="dark",  # ensure dark-mode SPAs render with dark theme
-            )
-            page = ctx.new_page()
+                # Capture every response body for later asset saving
+                page.on("response", self._intercept_response)
 
-            # Capture every response body for later asset saving
-            page.on("response", self._intercept_response)
+                print(f"[browser] Navigating to {self.base_url} ...")
+                page.goto(self.base_url, wait_until="networkidle",
+                          timeout=self.timeout)
 
-            print(f"[browser] Navigating to {self.base_url} ...")
-            page.goto(self.base_url, wait_until="networkidle",
-                      timeout=self.timeout)
+                # The browser may have been redirected (e.g. /auth) — capture final URL
+                final_url = page.url
+                print(f"[browser] Final URL: {final_url}")
 
-            # The browser may have been redirected (e.g. /auth) — capture final URL
-            final_url = page.url
-            print(f"[browser] Final URL: {final_url}")
-
-            # CSS-in-JS libraries (emotion, styled-components) inject rules via
-            # sheet.insertRule() which is invisible to page.content().
-            # Serialize all CSSOM rules back into their <style> tag textContent
-            # so they survive the DOM snapshot.
-            page.evaluate("""
-                () => {
-                    for (const sheet of document.styleSheets) {
-                        try {
-                            if (sheet.href) continue;  // skip external files
-                            const rules = Array.from(sheet.cssRules || [])
-                                .map(r => r.cssText).join('\\n');
-                            if (sheet.ownerNode && rules) {
-                                sheet.ownerNode.textContent = rules;
-                            }
-                        } catch (e) { /* cross-origin sheet — skip */ }
+                # CSS-in-JS libraries (emotion, styled-components) inject rules via
+                # sheet.insertRule() which is invisible to page.content().
+                # Serialize all CSSOM rules back into their <style> tag textContent
+                # so they survive the DOM snapshot.
+                page.evaluate("""
+                    () => {
+                        for (const sheet of document.styleSheets) {
+                            try {
+                                if (sheet.href) continue;  // skip external files
+                                const rules = Array.from(sheet.cssRules || [])
+                                    .map(r => r.cssText).join('\\n');
+                                if (sheet.ownerNode && rules) {
+                                    sheet.ownerNode.textContent = rules;
+                                }
+                            } catch (e) { /* cross-origin sheet — skip */ }
+                        }
                     }
-                }
-            """)
+                """)
 
-            # Grab the fully rendered DOM (now with inline CSS populated)
-            rendered_html = page.content()
+                # Grab the fully rendered DOM (now with inline CSS populated)
+                rendered_html = page.content()
 
-            browser.close()
+                browser.close()
+        except PlaywrightError as exc:
+            if "Please run the following command to download new browsers" in str(exc):
+                sys.exit(
+                    "Playwright browser binaries are not installed. To install them, run: \n"
+                    "  uv run --with playwright python -m playwright install chromium"
+                )
+            raise
 
         # Always save the entry point as index.html so the Canary serves it
         local_path = "index.html"
@@ -803,7 +798,7 @@ class SiteCloner:
 @click.option("-z", "--zip", "make_zip", is_flag=True, help="Also produce a .zip file ready for upload")
 @click.option("--verify-ssl", is_flag=True, help="Verify SSL certificates (default: off for internal servers)")
 @click.option("--timeout", type=int, default=15, help="HTTP request timeout in seconds (default: 15)")
-@click.option("--headless", is_flag=True, help="Use headless Chromium for JS-rendered SPAs. Requires: playwright install chromium")
+@click.option("--headless", is_flag=True, help="Use headless Chromium for JS-rendered SPAs. Requires: uv run --with playwright python -m playwright install chromium")
 @click.option("--keep-js", is_flag=True, help="Keep <script> tags (stripped by default in headless mode)")
 def main(url, output, depth, make_zip, verify_ssl, timeout, headless, keep_js):
     strip_js = not keep_js  # default strip; --keep-js disables it
