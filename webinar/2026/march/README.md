@@ -1,6 +1,6 @@
 # Canary Webroot Cloner
 
-Clones an web application into a static folder ready for upload as a [Thinkst Canary](https://canary.tools/) custom webroot. The result is a convincing web server on your Bird that captures submitted credentials via POST without requiring any changes to your Canary configuration beyond uploading the zip as a custom webroot.
+Clones a web application into a static folder ready for upload as a [Thinkst Canary](https://canary.tools/) custom webroot. The result is a convincing web server on your Bird that captures submitted credentials via POST without requiring any changes to your Canary configuration beyond uploading the zip as a custom webroot.
 
 ## What it produces
 
@@ -16,13 +16,15 @@ canary_webroot/
     └── config.toml                     # Redirects + POST response codes
 ```
 
-## Installation
+## Requirements
+
+- [`uv`](https://docs.astral.sh/uv/) installed
+- For `--headless` mode only: Playwright Chromium browser binaries
+
+Install Chromium for Playwright with:
 
 ```bash
-uv pip install -r requirements.txt
-
-# For --headless mode only (SPAs: React, Vue, Svelte, etc.)
-playwright install chromium
+uv run --with playwright python -m playwright install chromium
 ```
 
 ## Usage
@@ -30,13 +32,13 @@ playwright install chromium
 ### Standard clone (server-rendered pages)
 
 ```bash
-python canary_webroot_cloner.py https://10.0.0.50
+./canary_webroot_cloner.py https://10.0.0.50
 ```
 
 ### SPA / JS-rendered pages (recommended for most modern apps)
 
 ```bash
-python canary_webroot_cloner.py http://192.168.1.50:8080 --headless
+./canary_webroot_cloner.py http://192.168.1.50:8080 --headless
 ```
 
 ### Common options
@@ -55,13 +57,13 @@ python canary_webroot_cloner.py http://192.168.1.50:8080 --headless
 
 ```bash
 # Grafana login page, output as zip
-python canary_webroot_cloner.py http://grafana.internal:3000 --headless --zip
+./canary_webroot_cloner.py http://grafana.internal:3000 --headless --zip
 
 # Open WebUI with custom output directory
-python canary_webroot_cloner.py https://openwebui.internal --headless -o openwebui_canary --zip
+./canary_webroot_cloner.py https://openwebui.internal --headless -o openwebui_canary --zip
 
 # Multi-page standard site, follow links 2 levels deep
-python canary_webroot_cloner.py http://intranet.corp --depth 2 --zip
+./canary_webroot_cloner.py http://intranet.corp --depth 2 --zip
 ```
 
 ## How it works
@@ -91,7 +93,7 @@ python canary_webroot_cloner.py http://intranet.corp --depth 2 --zip
 ## Deploying to Canary
 
 1. Review the output folder and tweak assets as needed
-2. Zip it: `python canary_webroot_cloner.py ... --zip`
+2. Zip it: `./canary_webroot_cloner.py ... --zip`
    (or `cd canary_webroot && zip -r ../canary_webroot.zip .`)
 3. In the Canary Console: **Configure Canary → HTTP Web Server → Upload custom webroot**
 4. Set **HTTP Page Skin** to **User Supplied** and deploy
