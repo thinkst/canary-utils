@@ -35,6 +35,3 @@ Else {
 curl.exe -s https://$ApiHost$ApiBaseURL/canarytoken/create_factory `
     -d auth_token=$ApiToken `
     -d memo=$Memo
-
-
-
