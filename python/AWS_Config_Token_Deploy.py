@@ -3,15 +3,17 @@ import socket
 import os
 import json
 
-Domain = "ABC123.canary.tools" # Enter your Console domain between the . e.g. 1234abc.canary.tools
-FactoryAuth = "ABC123" # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+# Specify you Console domain and Canarytoken Deploy Flock API Key
+# (More on the API Key: https://help.canary.tools/hc/en-gb/articles/7111549805213-Flock-API-Keys)
+Domain = "ABC123.canary.tools"
+canarytoken_deploy_flock_api_key = "fa..."
 
 def drop_awsid_token():
     # Create Token on Console
-    create_token_url = 'https://' + Domain + '/api/v1/canarytoken/factory/create'
+    create_token_url = 'https://' + Domain + '/api/v1/canarytoken/create'
 
     payload = {
-        'factory_auth': FactoryAuth,
+        'auth_token': canarytoken_deploy_flock_api_key,
         'kind': 'aws-id',
         'memo': socket.gethostname() + ' - ' + 'Inserted into ~/.aws/credentials',
     }
