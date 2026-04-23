@@ -34,10 +34,6 @@ DOMAIN_HASH = "1234abc"
 # (More on the API Key: https://help.canary.tools/hc/en-gb/articles/7111549805213-Flock-API-Keys)
 CANARYTOKEN_DEPLOY_FLOCK_API_KEY = "fa..."
 
-# Enter the desired flock to place tokens in.
-# https://docs.canary.tools/flocks/queries.html#list-flock-sensors
-FLOCK_ID = "flock:default"
-
 # URL of your template, Private Repo's should follow the format of
 # https://api.github.com/repos/repo_owner/private_repo_name/contents/sample.docx,
 # public files can be referenced by https://github.com/owner/repo/raw/main/template.docx
@@ -103,7 +99,6 @@ print("Creating AWS token")
 request_parameters = {
     "auth_token": CANARYTOKEN_DEPLOY_FLOCK_API_KEY,
     "kind": "aws-id",
-    "flock_id": FLOCK_ID,
     "memo": f"{hostname} - Embedded AWS Token in {token_path}",
 }
 
@@ -158,7 +153,6 @@ print("Creating Word token")
 request_parameters = {
     "auth_token": CANARYTOKEN_DEPLOY_FLOCK_API_KEY,
     "kind": "doc-msword",
-    "flock_id": FLOCK_ID,
     "memo": f"{hostname} - {token_path}",
 }
 request_files = {
