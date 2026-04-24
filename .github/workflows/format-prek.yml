@@ -10,6 +10,9 @@ env:
   VERSION: v0.3.10
   ARCH: x86_64-unknown-linux-gnu
 
+permissions:
+  contents: read
+
 jobs:
   format:
     runs-on: ubuntu-latest
