@@ -56,7 +56,7 @@ variable "canary_disk_url" {
   description = "SAS URL of the source VHD blob"
   type        = string
   sensitive   = true
-  default     = "https://md-ljbkpmrjlxsf.z12.blob.storage.azure.net/mw0xbtcbsm0g/abcd?sv=2018-03-28&sr=b&si=9734e237-c346-4c38-9e41-1a74c339b016&sig=%2FWPiPL69JG3BSW9Q3km5jtHz%2FabT%2FsZATo%2B%2BgdJmbY0%3D"
+  default     = "https://md-ljbkpmrjlxsf.z12.blob.storage.azure.net/mw0xbtcbsm0g/abcd?123" # This is an example URL, please use the one provided to you by Thinkst Support.
 }
 
 variable "canary_master_image_name" {
