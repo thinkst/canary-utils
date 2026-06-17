@@ -1,7 +1,7 @@
  # Multiple Sensitive Command Canarytoken Dropper
  Param (
     [string]$ConsoleDomain = 'CONSOLE_DOMAIN_HERE.canary.tools', #  Enter your Console domain  for example 1234abc.canary.tools
-    [string]$FactoryAuth = 'FACTORY_AUTHSTRING_HERE' # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+    [string]$APIKey = 'abc123' # Enter your deployment API key. e.g a1bc3e769fg832hij3 Docs available here. https://help.canary.tools/hc/en-gb/articles/7111549805213-Flock-API-Keys
     )
 
 ####################################################################################################################################################################################################################################
@@ -17,7 +17,7 @@ function Deploy-Token_Sensitive_command{
     # List of processes to alert on
     param (
         [string]$TokenType = 'sensitive-cmd',
-        [string[]]$WatchedProcesses = @("mimikatz.exe" "netscan.exe", "adfind.exe", "speedtest.exe", "rclone.exe")
+        [string[]]$WatchedProcesses = @("mimikatz.exe", "netscan.exe", "adfind.exe", "speedtest.exe", "rclone.exe")
     )
 
     # Check for administrative privileges (required for registry keys
@@ -39,13 +39,13 @@ function Deploy-Token_Sensitive_command{
     
         $currentDateTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         $PostData = @{
-            factory_auth = "$FactoryAuth"
+            auth_token = "$APIKey"
             kind         = "$TokenType"
             process_name = "$WatchedProcess"
             memo         = "hostname: $([System.Net.Dns]::GetHostName())|process: $WatchedProcess|created: $currentDateTime"
         }
     
-        $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ConsoleDomain/api/v1/canarytoken/factory/create" -Body $PostData
+        $CreateResult = Invoke-RestMethod -Method Post -Uri "https://$ConsoleDomain/api/v1/canarytoken/create" -Body $PostData
         $Result = $CreateResult.result
         If ($Result -ne 'success') {
             #Write-Host -ForegroundColor Red "[X] Creation of Canarytoken failed."
@@ -55,7 +55,7 @@ function Deploy-Token_Sensitive_command{
             $TokenID = $($CreateResult).canarytoken.canarytoken
         }
     
-        Invoke-RestMethod -Method Get -Uri "https://$ConsoleDomain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+        Invoke-RestMethod -Method Get -Uri "https://$ConsoleDomain/api/v1/canarytoken/download?auth_token=$APIKey&canarytoken=$TokenID" -OutFile "$OutputFileName"
 
         $is64BitOS = [Environment]::Is64BitOperatingSystem
 
