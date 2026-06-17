@@ -2,14 +2,14 @@
 # Edit all lines in the below section to match your requirements.
 
 Param (
-    [string]$Domain = 'ABC123.canary.tools', # Enter your Console domain between the . e.g. 1234abc.canary.tools
-    [string]$FactoryAuth = 'DEF456', # Enter your Factory auth key. e.g a1bc3e769fg832hij3 Docs available here. https://docs.canary.tools/canarytokens/factory.html#create-canarytoken-factory-auth-string
+    [string]$Domain = 'abc123.canary.tools', # Enter your Console domain between the . e.g. 1234abc.canary.tools
+    [string]$APIKey = 'abc123', # Enter your deployment API key. e.g a1bc3e769fg832hij3 Docs available here. https://help.canary.tools/hc/en-gb/articles/7111549805213-Flock-API-Keys
     [string]$intro = 'ON' # [ON | OFF] Prints ASCII Art Intro.
     )
 
 # Token details
 $TokenFilename = "secrets.docx" # Desired Token file name.
-$TargetDirectory = "C:\Users\admin\Desktop" # Local location to drop the token into, please exclude the last slash "\""
+$TargetDirectory = "C:\Users\Administrator\Desktop" # Local location to drop the token into, please exclude the last slash "\""
 
 # List of accessible template word documents
 $TokenTemplates = @(
@@ -91,9 +91,9 @@ $httpBoundary = [System.Guid]::NewGuid().ToString()
 # Build HTTP multipart/form-data
 $requestBody = @"
 --$httpBoundary
-Content-Disposition: form-data; name="factory_auth"
+Content-Disposition: form-data; name="auth_token"
 
-$FactoryAuth
+$APIKey
 --$httpBoundary
 Content-Disposition: form-data; name="memo"
 
@@ -112,7 +112,7 @@ $encodedFile
 "@
 
 # Submit request to Console API
-$CreateTokenResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/factory/create" -Body $requestBody -ContentType "multipart/form-data; boundary=$httpBoundary;"
+$CreateTokenResult = Invoke-RestMethod -Method Post -Uri "https://$Domain/api/v1/canarytoken/create" -Body $requestBody -ContentType "multipart/form-data; boundary=$httpBoundary;"
 
 # Check creation result from API.
 $Result = $CreateTokenResult.result
@@ -129,6 +129,6 @@ Else {
 Remove-Item -Force "$TargetDirectory\$TemplateFileName"
 
 # Download Token
-Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/factory/download?factory_auth=$FactoryAuth&canarytoken=$TokenID" -OutFile "$OutputFileName"
+Invoke-RestMethod -Method Get -Uri "https://$Domain/api/v1/canarytoken/download?auth_token=$APIKey&canarytoken=$TokenID" -OutFile "$OutputFileName"
 
 Write-Host -ForegroundColor Green "[*] Token Script for: '$OutputFileName'. Complete on $env:computername" 
