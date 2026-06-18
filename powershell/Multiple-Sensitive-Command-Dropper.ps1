@@ -1,7 +1,7 @@
  # Multiple Sensitive Command Canarytoken Dropper
  Param (
     [string]$ConsoleDomain = 'CONSOLE_DOMAIN_HERE.canary.tools', #  Enter your Console domain  for example 1234abc.canary.tools
-    [string]$APIKey = 'abc123' # Enter your deployment API key. e.g a1bc3e769fg832hij3 Docs available here. https://help.canary.tools/hc/en-gb/articles/7111549805213-Flock-API-Keys
+    [string]$APIKey = 'abc123' # Enter your Canarytoken Deploy API key. e.g a1bc3e769fg832hij3 Docs available here. https://help.canary.tools/hc/en-gb/articles/7111549805213-Flock-API-Keys
     )
 
 ####################################################################################################################################################################################################################################
