@@ -1,5 +1,5 @@
 #!/bin/bash
-# Generate AWS Creds 
+# Generate AWS Creds
 # canarygen_awscreds_auto.sh
 
 # This is the "auto" version of this script. Run it unattended and it will
@@ -18,6 +18,8 @@ set -euo pipefail
 CONSOLE="abc1234e.canary.tools"
 AUTH_TOKEN="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 FILEPATH="${HOME}"
+HOSTNAME="$(hostname)"
+USER="$(id -un)"
 
 command -v curl >/dev/null 2>&1 || { echo "Missing required command: curl" >&2; exit 1; }
 mkdir -p "${FILEPATH}"
@@ -83,5 +85,5 @@ EOF
 
 echo "Success: Creds written to ${OUTFILE}"
 
-unset CONSOLE AUTH_TOKEN FILEPATH FILEDATE OUTFILE TOKENMEMO ACCESS_KEY_ID SECRET_ACCESS_KEY HTTP_CODE
+unset CONSOLE AUTH_TOKEN FILEPATH FILEDATE OUTFILE TOKENMEMO ACCESS_KEY_ID SECRET_ACCESS_KEY HTTP_CODE USER HOSTNAME
 exit 0
