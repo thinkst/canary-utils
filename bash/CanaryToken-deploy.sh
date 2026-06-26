@@ -19,7 +19,7 @@
 #    4. Run script as a user that has read/write access on the target directory.
 #
 #.EXAMPLE
-#    sh .\CreateCanarytokensCanaryToken-deploy.sh
+#    sh .\CanaryToken-deploy.sh
 #    This will run the tool asking interactively for missing params.
 #    Flags 
 #    -d Domain e.g aabbccdd.canary.tools
@@ -28,16 +28,13 @@
 #    -t Token Type e.g aws-id
 #    -n Token Filename e.g aws_secret.txt Note: Use an appropriate extension for your token type.
 #
-#    sh .\CreateCanarytokensCanaryToken-deploy.sh -d aabbccdd.canary.tools -a XXYYZZ -o "~/secret" -t aws-id -n aws_secret.txt
+#    sh .\CanaryToken-deploy.sh -d aabbccdd.canary.tools -a XXYYZZ -o "~/secret" -t aws-id -n aws_secret.txt
 #    creates an AWS-ID Canarytoken, using aws_secret.txt as the filename, and places it under ~/secret
 
 #   Supported tokens are: "aws-id"                : "AWS API Key",
-#                         "azure-id"              : "Azure API Key",
 #                         "credit-card"           : "Credit Card",
 #                         "doc-msword"            : "MS Word Document",
 #                         "msexcel-macro"         : "MS Excel Macro Document",
-#                         "msexcel-macro"         : "MS Excel Macro Document",
-#                         "msword-macro"          : "MS Word Macro Document",
 #                         "msword-macro"          : "MS Word Macro Document",
 #                         "mysql-dump"            : "MySQL Dump",
 #                         "pdf-acrobat-reader"    : "Acrobat PDF",
@@ -69,13 +66,13 @@ done
 #Collect unset variables from user.
 if [ -z "$TOKENTYPE" ]
 then
-echo '\nEnter your desired token type\n> aws-id | azure-id | credit-card | doc-msword | msexcel-macro | msexcel-macro | msword-macro | msword-macro | mysql-dump | pdf-acrobat-reader | qr-code | slack-api | windows-dir | wireguard'
+echo '\nEnter your desired token type\n> aws-id | credit-card | doc-msword | doc-msexcel | msexcel-macro | msword-macro | mysql-dump | pdf-acrobat-reader | qr-code | slack-api | windows-dir | wireguard'
 read TOKENTYPE
 fi
 
 #Don't continue unless $TOKENTYPE is supported
 case "$TOKENTYPE" in
-    "aws-id"|"azure-id"|"credit-card"|"doc-msword"|"msexcel-macro"|"msexcel-macro"|"msword-macro"|"msword-macro"|"mysql-dump"|"pdf-acrobat-reader"|"qr-code"|"slack-api"|"windows-dir"|"wireguard")
+    "aws-id"|"credit-card"|"doc-msword"|"doc-msexcel"|"msexcel-macro"|"msword-macro"|"mysql-dump"|"pdf-acrobat-reader"|"qr-code"|"slack-api"|"windows-dir"|"wireguard")
         echo '\n[*] Token type is downloadable, proceeding'
         ;;
     *)
@@ -141,7 +138,6 @@ echo "\nFile already exists." ;
 fi
 
 #Create token
-TOKENNAME=$OUTPUTFILENAME
 MACHINEHOSTNAME=$(hostname)
 
 echo "\n[*] Requesting a Token from the Canary Console API..." ;
@@ -158,7 +154,7 @@ if [[ "$TOKENRESULT" == *"success"* ]];
 then
 echo "\n[*] Token Created (ID: $TOKENID)."
 else
-echo "\n[X] Creation of $TOKENNAME failed."
+echo "\n[X] Creation of $OUTPUTFILENAME failed."
 exit -1
 fi
 
