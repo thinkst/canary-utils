@@ -66,13 +66,13 @@ done
 #Collect unset variables from user.
 if [ -z "$TOKENTYPE" ]
 then
-echo '\nEnter your desired token type\n> aws-id | credit-card | doc-msword | doc-msexcel | msexcel-macro | msword-macro | mysql-dump | pdf-acrobat-reader | qr-code | slack-api | windows-dir | wireguard'
+echo '\nEnter your desired token type\n> aws-id | azure-id | credit-card | doc-msword | doc-msexcel | msexcel-macro | msword-macro | mysql-dump | pdf-acrobat-reader | qr-code | slack-api | windows-dir | wireguard'
 read TOKENTYPE
 fi
 
 #Don't continue unless $TOKENTYPE is supported
 case "$TOKENTYPE" in
-    "aws-id"|"credit-card"|"doc-msword"|"doc-msexcel"|"msexcel-macro"|"msword-macro"|"mysql-dump"|"pdf-acrobat-reader"|"qr-code"|"slack-api"|"windows-dir"|"wireguard")
+    "aws-id"|"azure-id"|"credit-card"|"doc-msword"|"doc-msexcel"|"msexcel-macro"|"msword-macro"|"mysql-dump"|"pdf-acrobat-reader"|"qr-code"|"slack-api"|"windows-dir"|"wireguard")
         echo '\n[*] Token type is downloadable, proceeding'
         ;;
     *)
