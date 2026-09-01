@@ -8,7 +8,7 @@
 API_HOST="YOUR_CONSOLE.canary.tools"
 API_TOKEN="YOUR_API_KEY"
 
-TOKEN_KIND="azure-id"  # Options: doc-msword, aws-id, azure-id, slack-api, wireguard
+TOKEN_KIND="azure-id"  # Options: doc-msword, aws-id, azure-id, slack-api, wireguard, mysql-dump
 AZURE_FILENAME="azure-prod.pem"  # Required param for azure-id
 
 TARGETS=("host1" "host2")
@@ -52,6 +52,9 @@ for TARGET in "${TARGETS[@]}"; do
             ;;
         wireguard)
             OUTPUT_FILE="${TARGET}-wg0.conf"
+            ;;
+        mysql-dump)
+            OUTPUT_FILE="${TARGET}-dump.sql.gz"
             ;;
         *)
             echo "❌ Unsupported TOKEN_KIND: $TOKEN_KIND"
